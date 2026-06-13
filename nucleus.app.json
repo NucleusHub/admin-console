@@ -1,0 +1,18 @@
+{
+  "id": "admin",
+  "name": "Admin Console",
+  "description": "Manage profiles, apps & system",
+  "route": "/admin",
+  "locked": true,
+  "icon": "icon.svg",
+  "category": "system",
+  "hub": {
+    "showInSidebar": false,
+    "showOnDashboard": false
+  },
+  "nginx": {
+    "routes": [
+      { "path": "/admin", "upstream": "admin-client:5178", "websocket": true }
+    ]
+  }
+}

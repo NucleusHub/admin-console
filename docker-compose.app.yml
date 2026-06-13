@@ -1,0 +1,10 @@
+services:
+  admin-client:
+    build:
+      context: ./client
+    restart: unless-stopped
+    volumes:
+      - ./client/src:/app/src
+      - ./client/index.html:/app/index.html
+      - ./client/vite.config.js:/app/vite.config.js
+      - ../../core:/app/core:ro
