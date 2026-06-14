@@ -8,7 +8,7 @@ export default createRouter({
       path: '/',
       component: AdminLayout,
       children: [
-        { path: '', redirect: '/overview' },
+        { path: '', redirect: '/users' },
         { path: 'overview', component: () => import('@/views/OverviewView.vue') },
         { path: 'users',    component: () => import('@/views/UsersView.vue') },
         { path: 'groups',   component: () => import('@/views/GroupsView.vue') },
