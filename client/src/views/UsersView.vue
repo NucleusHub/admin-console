@@ -48,6 +48,11 @@ function roleLabel(u) {
   if (u.isGuest) return 'Guest'
   return u.role === 'admin' ? 'Admin' : 'User'
 }
+
+// Merge edits made in the config modal (name / role / PIN) back into the row.
+function onUserUpdated(patch) {
+  users.value = users.value.map(u => (u._id === patch._id ? { ...u, ...patch } : u))
+}
 </script>
 
 <template>
@@ -60,7 +65,7 @@ function roleLabel(u) {
     <p v-if="loading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
     <p v-else-if="error" class="text-sm text-red-500 py-8 text-center">Couldn't load profiles: {{ error }}</p>
 
-    <div v-else class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-white/70 dark:border-white/10 overflow-hidden">
+    <div v-else class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] overflow-hidden">
       <!-- header row (desktop) -->
       <div class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_5rem] gap-3 items-center px-[18px] py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35">
         <span>Name</span><span class="text-center">Role</span><span class="text-center">PIN</span><span class="text-center">Group</span><span />
@@ -131,7 +136,7 @@ function roleLabel(u) {
     </div>
 
     <!-- Per-user app/widget config -->
-    <UserConfigModal :user="configUser" @close="configUser = null" />
+    <UserConfigModal :user="configUser" @close="configUser = null" @updated="onUserUpdated" />
 
     <!-- All groups a user belongs to -->
     <TemplateModal :show="!!groupsUser" panel-class="max-w-xs" @cancel="groupsUser = null">

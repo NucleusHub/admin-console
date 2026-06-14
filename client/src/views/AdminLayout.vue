@@ -10,10 +10,14 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const sidebarOpen = ref(false)
 
-const TABS = [
+// Per-profile management tabs vs. global (everyone) settings, shown as two
+// distinct groups in the tab bar.
+const MAIN_TABS = [
   { to: '/overview', label: 'Overview' },
   { to: '/users',    label: 'Users' },
   { to: '/groups',   label: 'Groups' },
+]
+const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
 ]
@@ -59,15 +63,27 @@ const TABS = [
     </AppHeader>
 
     <!-- Tabs — client-side navigation, no page reload -->
-    <nav class="sticky top-16 z-20 px-4 pt-2.5">
-      <div class="flex gap-1 max-w-5xl mx-auto overflow-x-auto no-scrollbar">
+    <nav class="sticky top-16 z-20 px-4 pt-4 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-b from-transparent to-transparent dark:to-slate-900/55 dark:backdrop-blur-md">
+      <div class="flex items-stretch gap-1 max-w-5xl mx-auto overflow-x-auto no-scrollbar">
         <RouterLink
-          v-for="t in TABS"
+          v-for="t in MAIN_TABS"
           :key="t.to"
           :to="t.to"
-          class="shrink-0 px-3.5 py-[7px] rounded-[10px] text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-white"
-          active-class="!bg-indigo-500/15 !text-indigo-600 dark:!bg-indigo-500/25 dark:!text-indigo-300"
+          class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
+          active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
         >{{ t.label }}</RouterLink>
+
+        <!-- Global settings — set apart from the per-profile tabs -->
+        <div class="flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+          <span class="self-center pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
+          <RouterLink
+            v-for="t in GLOBAL_TABS"
+            :key="t.to"
+            :to="t.to"
+            class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
+            active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
+          >{{ t.label }}</RouterLink>
+        </div>
       </div>
     </nav>
 

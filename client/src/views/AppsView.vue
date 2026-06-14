@@ -74,7 +74,7 @@ async function applyToggle() {
       <div
         v-for="a in apps"
         :key="a.id"
-        class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-white/70 dark:border-white/10 p-4 flex flex-col gap-3"
+        class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] p-4 flex flex-col gap-3"
         :class="{ 'opacity-55': isOff(a.id) }"
       >
         <div class="flex items-start gap-3">

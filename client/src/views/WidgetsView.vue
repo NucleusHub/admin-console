@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ConfirmGlobalModal from '@/components/ConfirmGlobalModal.vue'
 
 const widgets = ref([])
@@ -30,6 +30,8 @@ onMounted(load)
 const isOff = (id) => disabled.value.has(id)
 // A widget whose data provider is globally disabled is off too (cascade).
 const providerOff = (w) => w.dependsOn && disabled.value.has(w.dependsOn)
+const widgetById = computed(() => new Map(widgets.value.map(w => [w.id, w])))
+const providerName = (w) => widgetById.value.get(w.dependsOn)?.name || w.dependsOn
 
 async function applyToggle() {
   const w = pending.value
@@ -71,7 +73,7 @@ async function applyToggle() {
     <p v-if="loading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
     <p v-else-if="error" class="text-sm text-red-500 py-8 text-center">{{ error }}</p>
 
-    <div v-else class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-white/70 dark:border-white/10 overflow-hidden">
+    <div v-else class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] overflow-hidden">
       <div
         v-for="w in widgets"
         :key="w.id"
@@ -81,8 +83,12 @@ async function applyToggle() {
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ w.name }}</p>
           <p class="text-xs text-slate-500 dark:text-white/45 truncate">{{ w.description }}</p>
+          <p v-if="w.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
+            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+            Depends on {{ providerName(w) }}
+          </p>
         </div>
-        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/8 text-slate-500 dark:text-white/50 shrink-0">{{ w.slot }}</span>
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
         <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
 
         <!-- Core/required widgets can't be disabled -->
@@ -95,12 +101,12 @@ async function applyToggle() {
           </svg>
           {{ w.slot === 'system' ? 'Core' : 'Required' }}
         </span>
-        <!-- Off because its data provider (e.g. System Info) is disabled -->
+        <!-- Off because its data provider is disabled -->
         <span
           v-else-if="providerOff(w)"
           class="shrink-0 text-[11px] font-medium text-slate-400 dark:text-white/40"
-          title="Re-enable System Info to control this widget"
-        >via System Info</span>
+          :title="`Re-enable ${providerName(w)} to control this widget`"
+        >via {{ providerName(w) }}</span>
         <button
           v-else
           class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"

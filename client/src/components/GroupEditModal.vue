@@ -103,6 +103,11 @@ const groupSet = computed(() => (tab.value === 'apps' ? groupApps.value : groupW
 const isLocked = (it) => !!it.locked
 const globallyOff = (it) => globalSet.value.has(it.id)
 const groupOff = (it) => groupSet.value.has(it.id)
+// Cascade: a widget whose data provider is disabled (globally or for this
+// group) is effectively off too — disabling e.g. System Info turns off the
+// widgets that depend on it.
+const widgetName = (id) => widgets.value.find(w => w.id === id)?.name || id
+const providerOff = (it) => it.dependsOn && (globalSet.value.has(it.dependsOn) || groupSet.value.has(it.dependsOn))
 
 async function toggleAccess(it) {
   if (!props.group || isLocked(it) || globallyOff(it)) return
@@ -206,14 +211,19 @@ async function toggleAccess(it) {
             v-for="it in accessItems"
             :key="it.id"
             class="flex items-center gap-3 px-2.5 py-2 rounded-xl"
-            :class="(isLocked(it) || globallyOff(it) || groupOff(it)) ? 'opacity-70' : ''"
+            :class="(isLocked(it) || globallyOff(it) || groupOff(it) || providerOff(it)) ? 'opacity-70' : ''"
           >
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ it.name }}</p>
               <p class="text-xs text-slate-500 dark:text-white/40 truncate">{{ it.description }}</p>
+              <p v-if="it.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
+                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                Depends on {{ widgetName(it.dependsOn) }}
+              </p>
             </div>
             <span v-if="isLocked(it)" class="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-white/50 bg-slate-500/10 dark:bg-white/10 px-2 py-1 rounded-lg">Required</span>
             <span v-else-if="globallyOff(it)" class="shrink-0 text-[11px] font-semibold text-red-600 dark:text-red-400 bg-red-500/12 px-2 py-1 rounded-lg" title="Disabled globally">Disabled globally</span>
+            <span v-else-if="providerOff(it)" class="shrink-0 text-[11px] font-medium text-slate-400 dark:text-white/40" :title="`Re-enable ${widgetName(it.dependsOn)} to control this widget`">via {{ widgetName(it.dependsOn) }}</span>
             <button
               v-else
               class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
