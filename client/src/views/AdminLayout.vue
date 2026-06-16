@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import AppSidebar from '@core/AppSidebar.vue'
 import AppHeader from '@core/AppHeader.vue'
 import { useAuth } from '@core/auth/useAuth.js'
@@ -10,8 +11,9 @@ const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const sidebarOpen = ref(false)
 
-// Per-profile management tabs vs. global (everyone) settings, shown as two
-// distinct groups in the tab bar.
+// Per-profile management tabs vs. global (everyone) settings. The per-profile
+// tabs sit inline; the global toggles live behind a chevron dropdown after them,
+// so the bar stays single-row on phones (no horizontal scroll).
 const MAIN_TABS = [
   { to: '/overview', label: 'Overview' },
   { to: '/users',    label: 'Users' },
@@ -21,6 +23,21 @@ const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
 ]
+
+// ── Global-toggles dropdown ───────────────────────────────────────────────────
+const route = useRoute()
+const globalOpen = ref(false)
+const globalMenu = ref(null)
+// Highlight the chevron while a global tab is the active route.
+const globalActive = computed(() => GLOBAL_TABS.some(t => route.path.startsWith(t.to)))
+
+// Close on outside click and whenever the route changes.
+function onDocClick(e) {
+  if (globalOpen.value && globalMenu.value && !globalMenu.value.contains(e.target)) globalOpen.value = false
+}
+watch(() => route.path, () => { globalOpen.value = false })
+onMounted(() => document.addEventListener('click', onDocClick))
+onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <template>
@@ -62,9 +79,11 @@ const GLOBAL_TABS = [
       </div>
     </AppHeader>
 
-    <!-- Tabs — client-side navigation, no page reload -->
+    <!-- Tabs — client-side navigation, no page reload. Per-profile tabs sit inline;
+         the global toggles open from a chevron after Groups, so the bar stays a
+         single non-scrolling row on phones. -->
     <nav class="sticky top-16 z-20 px-4 pt-4 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-b from-transparent to-transparent dark:to-slate-900/55 dark:backdrop-blur-md">
-      <div class="flex items-stretch gap-1 max-w-5xl mx-auto overflow-x-auto no-scrollbar">
+      <div class="flex items-stretch gap-1 max-w-5xl mx-auto">
         <RouterLink
           v-for="t in MAIN_TABS"
           :key="t.to"
@@ -73,8 +92,8 @@ const GLOBAL_TABS = [
           active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
         >{{ t.label }}</RouterLink>
 
-        <!-- Global settings — set apart from the per-profile tabs -->
-        <div class="flex items-stretch gap-1 shrink-0 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+        <!-- Desktop: global tabs inline, set apart by a divider -->
+        <div class="hidden sm:flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
           <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
           <RouterLink
             v-for="t in GLOBAL_TABS"
@@ -83,6 +102,41 @@ const GLOBAL_TABS = [
             class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
             active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
           >{{ t.label }}</RouterLink>
+        </div>
+
+        <!-- Mobile: global toggles open from the chevron after Groups -->
+        <div ref="globalMenu" class="relative flex items-stretch sm:hidden">
+          <button
+            type="button"
+            aria-label="Global toggles"
+            :aria-expanded="globalOpen"
+            class="inline-flex items-center gap-0.5 -mb-px px-2 py-2.5 border-b-2 whitespace-nowrap transition-colors cursor-pointer"
+            :class="globalActive || globalOpen
+              ? '!border-indigo-500 text-indigo-600 dark:!border-indigo-400 dark:text-indigo-300'
+              : 'border-transparent text-slate-400 dark:text-white/45 hover:text-slate-700 dark:hover:text-white'"
+            @click.stop="globalOpen = !globalOpen"
+          >
+            <svg class="w-4 h-4 transition-transform duration-200" :class="globalOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+
+          <Transition name="gt">
+            <div
+              v-if="globalOpen"
+              class="absolute left-0 top-full mt-1.5 z-30 min-w-[11rem] p-1 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xl shadow-slate-900/10 dark:shadow-black/40"
+            >
+              <p class="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</p>
+              <RouterLink
+                v-for="t in GLOBAL_TABS"
+                :key="t.to"
+                :to="t.to"
+                class="block px-3 py-2 rounded-lg text-[13px] font-semibold text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/8 transition-colors"
+                active-class="!text-indigo-600 dark:!text-indigo-300 bg-indigo-500/10"
+                @click="globalOpen = false"
+              >{{ t.label }}</RouterLink>
+            </div>
+          </Transition>
         </div>
       </div>
     </nav>
@@ -94,6 +148,7 @@ const GLOBAL_TABS = [
 </template>
 
 <style scoped>
-.no-scrollbar { scrollbar-width: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.gt-enter-active, .gt-leave-active { transition: opacity 0.13s ease, transform 0.13s ease; }
+.gt-enter-from, .gt-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
+
