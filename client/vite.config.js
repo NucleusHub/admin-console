@@ -17,6 +17,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',
     port: 5178,
-    allowedHosts: ['nucleus.home', 'server.tail874d1f.ts.net'],
+    allowedHosts: ['nucleus.olm-altair.ts.net'],
   },
 }))
