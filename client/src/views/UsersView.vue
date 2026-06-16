@@ -83,7 +83,7 @@ function onUserUpdated(patch) {
         </div>
 
         <!-- role -->
-        <div class="flex sm:justify-center">
+        <div class="flex col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto sm:justify-center">
           <span
             class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold"
             :class="u.isGuest
@@ -126,7 +126,7 @@ function onUserUpdated(patch) {
         </div>
 
         <!-- actions -->
-        <div class="row-span-2 sm:row-span-1 self-center justify-self-end">
+        <div class="col-start-2 row-start-1 sm:col-auto sm:row-auto self-center justify-self-end">
           <button
             class="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer whitespace-nowrap text-indigo-600 dark:text-indigo-300 bg-indigo-500/12 hover:bg-indigo-500/22 transition-colors"
             @click="configUser = u"

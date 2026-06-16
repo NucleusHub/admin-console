@@ -77,10 +77,10 @@ async function applyToggle() {
       <div
         v-for="w in widgets"
         :key="w.id"
-        class="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.06] last:border-0"
+        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.06] last:border-0"
         :class="{ 'opacity-55': isOff(w.id) || providerOff(w) }"
       >
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 w-full sm:flex-1">
           <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ w.name }}</p>
           <p class="text-xs text-slate-500 dark:text-white/45 truncate">{{ w.description }}</p>
           <p v-if="w.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
@@ -88,33 +88,37 @@ async function applyToggle() {
             Depends on {{ providerName(w) }}
           </p>
         </div>
-        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
-        <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
 
-        <!-- Core/required widgets can't be disabled -->
-        <span
-          v-if="w.locked"
-          class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-white/50 bg-slate-500/10 dark:bg-white/8"
-        >
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" />
-          </svg>
-          {{ w.slot === 'system' ? 'Core' : 'Required' }}
-        </span>
-        <!-- Off because its data provider is disabled -->
-        <span
-          v-else-if="providerOff(w)"
-          class="shrink-0 text-[11px] font-medium text-slate-400 dark:text-white/40"
-          :title="`Re-enable ${providerName(w)} to control this widget`"
-        >via {{ providerName(w) }}</span>
-        <button
-          v-else
-          class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-          :class="isOff(w.id)
-            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/12 hover:bg-emerald-500/22'
-            : 'text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22'"
-          @click="pending = w"
-        >{{ isOff(w.id) ? 'Enable' : 'Disable' }}</button>
+        <!-- Meta + action: wraps below the name on narrow screens -->
+        <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
+          <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
+
+          <!-- Core/required widgets can't be disabled -->
+          <span
+            v-if="w.locked"
+            class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-white/50 bg-slate-500/10 dark:bg-white/8"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            {{ w.slot === 'system' ? 'Core' : 'Required' }}
+          </span>
+          <!-- Off because its data provider is disabled -->
+          <span
+            v-else-if="providerOff(w)"
+            class="shrink-0 text-[11px] font-medium text-slate-400 dark:text-white/40"
+            :title="`Re-enable ${providerName(w)} to control this widget`"
+          >via {{ providerName(w) }}</span>
+          <button
+            v-else
+            class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            :class="isOff(w.id)
+              ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/12 hover:bg-emerald-500/22'
+              : 'text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22'"
+            @click="pending = w"
+          >{{ isOff(w.id) ? 'Enable' : 'Disable' }}</button>
+        </div>
       </div>
       <p v-if="!widgets.length" class="text-sm text-slate-400 dark:text-white/40 py-8 text-center">No widgets.</p>
     </div>

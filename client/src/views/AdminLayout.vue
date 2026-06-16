@@ -74,8 +74,8 @@ const GLOBAL_TABS = [
         >{{ t.label }}</RouterLink>
 
         <!-- Global settings — set apart from the per-profile tabs -->
-        <div class="flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
-          <span class="self-center pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
+        <div class="flex items-stretch gap-1 shrink-0 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+          <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
           <RouterLink
             v-for="t in GLOBAL_TABS"
             :key="t.to"
