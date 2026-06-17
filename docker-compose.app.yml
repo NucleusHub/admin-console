@@ -8,6 +8,9 @@ services:
       nucleus.stack: "nucleus"
       nucleus.role: "app-client"
       nucleus.app: "admin"
+    environment:
+      # Vite dev server's allowedHosts reads this (see client/vite.config.js).
+      NUCLEUS_HOST: ${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}
     volumes:
       - ./client/src:/app/src
       - ./client/index.html:/app/index.html
