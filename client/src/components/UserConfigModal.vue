@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
+import { useAuth } from '@core/auth/useAuth.js'
 
 // Per-user config: a Details tab (name, role, PIN) plus per-user app/widget
 // enable/disable. Global overrides always win — a globally disabled item is off
@@ -8,7 +9,9 @@ import TemplateModal from '@core/TemplateModal.vue'
 const props = defineProps({
   user: { type: Object, default: null },
 })
-const emit = defineEmits(['close', 'updated'])
+const emit = defineEmits(['close', 'updated', 'delete'])
+
+const { profile: currentProfile } = useAuth()
 
 const tab = ref('details')
 
@@ -16,25 +19,49 @@ const tab = ref('details')
 const name = ref('')
 const role = ref('user')
 const pinSet = ref(false)
-const pinInput = ref('')
+const pinTemporaryStatus = ref(false)   // current PIN is a one-time PIN
+const tempPin = ref(null)               // plaintext one-time PIN to relay, while active
+const resettingPin = ref(false)
 const savingDetails = ref(false)
 const detailsError = ref(null)
-const settingPin = ref(false)
 const pinError = ref(null)
 
+const savedRole = ref('user')   // role as persisted on the server (toggle is `role`)
+
 const isGuest = computed(() => !!props.user?.isGuest)
+const isSelf = computed(() =>
+  !!currentProfile.value && !!props.user && String(currentProfile.value._id) === String(props.user._id))
+// Admins can't be deleted until demoted; neither can your own account.
+const canDelete = computed(() => !isGuest.value && !isSelf.value && savedRole.value !== 'admin')
 
 watch(() => props.user, (u) => {
   if (!u) return
   tab.value = 'details'
   name.value = u.name ?? ''
   role.value = u.role === 'admin' ? 'admin' : 'user'
+  savedRole.value = role.value
   pinSet.value = !!u.hasPin
-  pinInput.value = ''
+  pinTemporaryStatus.value = !!u.hasPin && !!u.pinTemporary
+  tempPin.value = null
   detailsError.value = null
   pinError.value = null
   load(u._id)
+  loadTempPin(u._id)
 }, { immediate: true })
+
+// Pull the active one-time PIN (if any) so it stays visible until the user
+// replaces it. Admin-only endpoint; guests never have one.
+async function loadTempPin(id) {
+  if (isGuest.value) return
+  try {
+    const res = await fetch(`/api/auth/profiles/${id}/pin-temp`, { credentials: 'include' })
+    if (!res.ok) return
+    const d = await res.json()
+    pinSet.value = !!d.hasPin
+    pinTemporaryStatus.value = !!d.pinTemporary
+    tempPin.value = d.pin || null
+  } catch {}
+}
 
 async function saveDetails() {
   const n = name.value.trim()
@@ -48,7 +75,8 @@ async function saveDetails() {
       credentials: 'include',
       body: JSON.stringify({ name: n, role: role.value }),
     })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`)
+    savedRole.value = role.value
     emit('updated', { _id: props.user._id, name: n, role: role.value })
   } catch (e) {
     detailsError.value = e.message
@@ -57,26 +85,26 @@ async function saveDetails() {
   }
 }
 
-async function setPin() {
-  const pin = pinInput.value.trim().toUpperCase()
-  if (!/^[0-9A-F]{4}$/.test(pin)) { pinError.value = 'PIN must be 4 characters (0–9, A–F)'; return }
-  settingPin.value = true
+// Issue a fresh one-time PIN. The server generates it; we surface the plaintext
+// so the admin can pass it on. The user is forced to set their own on next login.
+async function resetPin() {
+  resettingPin.value = true
   pinError.value = null
   try {
-    const res = await fetch(`/api/auth/profiles/${props.user._id}/pin`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`/api/auth/profiles/${props.user._id}/pin/reset`, {
+      method: 'POST',
       credentials: 'include',
-      body: JSON.stringify({ pin }),
     })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`)
+    const d = await res.json()
     pinSet.value = true
-    pinInput.value = ''
-    emit('updated', { _id: props.user._id, hasPin: true })
+    pinTemporaryStatus.value = true
+    tempPin.value = d.pin
+    emit('updated', { _id: props.user._id, hasPin: true, pinTemporary: true })
   } catch (e) {
     pinError.value = e.message
   } finally {
-    settingPin.value = false
+    resettingPin.value = false
   }
 }
 
@@ -204,39 +232,53 @@ async function toggle(it) {
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">PIN</label>
           <!-- Guests never have a PIN -->
           <div v-if="isGuest" class="text-sm text-slate-400 dark:text-white/35">Guest profiles can't have a PIN.</div>
-          <!-- Already set: locked field -->
-          <div v-else-if="pinSet" class="flex items-center gap-2">
-            <input
-              type="text"
-              value="••••"
-              disabled
-              class="flex-1 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.03] text-slate-400 dark:text-white/35 px-3 py-2 tracking-[0.3em] cursor-not-allowed"
-            />
-            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-              PIN is set
-            </span>
-          </div>
-          <!-- Not set: allow setting one (non-guest only) -->
           <div v-else>
-            <div class="flex gap-2">
-              <input
-                v-model="pinInput"
-                type="text"
-                maxlength="4"
-                placeholder="4 chars · 0–9, A–F"
-                class="flex-1 text-sm rounded-xl border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 text-slate-900 dark:text-white px-3 py-2 uppercase tracking-[0.2em] placeholder:tracking-normal placeholder:text-slate-400 dark:placeholder:text-white/30"
-                @keydown.enter.prevent="setPin"
-              />
-              <button
-                class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 cursor-pointer transition-colors shrink-0"
-                :disabled="settingPin || pinInput.trim().length !== 4"
-                @click="setPin"
-              >{{ settingPin ? 'Setting…' : 'Set PIN' }}</button>
+            <!-- Active one-time PIN — visible until the user picks their own -->
+            <div v-if="pinTemporaryStatus && tempPin" class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mb-2">
+              <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" /></svg>
+                One-time PIN
+              </p>
+              <p class="font-mono text-2xl font-bold tracking-[0.35em] text-amber-800 dark:text-amber-200 mt-1 pl-1">{{ tempPin }}</p>
+              <p class="text-[11px] text-amber-700/80 dark:text-amber-300/70 mt-1">Share with {{ user?.name }}. They'll set their own PIN on next sign-in, then this clears.</p>
             </div>
-            <p class="text-[11px] text-slate-400 dark:text-white/35 mt-1">No PIN set — this profile signs in without one.</p>
+
+            <!-- Status line -->
+            <div class="mb-2 text-[12px]">
+              <span v-if="pinTemporaryStatus" class="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                Awaiting first sign-in
+              </span>
+              <span v-else-if="pinSet" class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                PIN is set — only {{ user?.name }} knows it
+              </span>
+              <span v-else class="text-slate-400 dark:text-white/40">No PIN — this profile signs in without one.</span>
+            </div>
+
+            <button
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 disabled:opacity-60 cursor-pointer transition-colors"
+              :disabled="resettingPin"
+              @click="resetPin"
+            >{{ resettingPin ? 'Generating…' : (pinTemporaryStatus && tempPin ? 'Generate new one-time PIN' : 'Reset PIN') }}</button>
+            <p class="text-[11px] text-slate-400 dark:text-white/35 mt-1.5">
+              Issues a one-time PIN. An admin can't read or change a user's own PIN — only reset it.
+            </p>
           </div>
           <p v-if="pinError" class="text-[11px] text-red-500 mt-1">{{ pinError }}</p>
+        </div>
+
+        <!-- Danger zone -->
+        <div v-if="!isGuest" class="pt-2 border-t border-slate-200/60 dark:border-white/10">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-red-500/70 mb-1.5">Danger zone</label>
+          <template v-if="canDelete">
+            <button
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22 cursor-pointer transition-colors"
+              @click="emit('delete', user)"
+            >Delete user…</button>
+            <p class="text-[11px] text-slate-400 dark:text-white/35 mt-1.5">Permanently removes this user and all their data.</p>
+          </template>
+          <p v-else-if="isSelf" class="text-[11px] text-slate-400 dark:text-white/40">You can’t delete your own profile.</p>
+          <p v-else class="text-[11px] text-slate-400 dark:text-white/40">Admins can’t be deleted. Switch the role to <strong>User</strong> and save first.</p>
         </div>
       </div>
 

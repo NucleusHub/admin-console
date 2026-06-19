@@ -1,7 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AvatarCircle from '@core/auth/AvatarCircle.vue'
+import PinInput from '@core/auth/PinInput.vue'
 import UserConfigModal from '@/components/UserConfigModal.vue'
+import UserDeleteModal from '@/components/UserDeleteModal.vue'
 import TemplateModal from '@core/TemplateModal.vue'
 
 const users = ref([])
@@ -10,6 +12,93 @@ const loading = ref(true)
 const error = ref(null)
 const configUser = ref(null)     // user whose "configure apps" modal is open
 const groupsUser = ref(null)     // user whose "all groups" modal is open
+const deleteUser = ref(null)     // user pending permanent deletion
+
+// ── New profile ───────────────────────────────────────────────────────────────
+// Avatar palette mirrors the server's (core/auth-server/models/Profile.js); a
+// null color means "derive from the name", which the server does on create.
+const AVATAR_COLORS = [
+  '#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316',
+  '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#06b6d4',
+  '#a855f7', '#f43f5e',
+]
+function colorFromName(name) {
+  let h = 0
+  for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+}
+
+const newProfileModal = ref(false)
+const creating = ref(false)
+const createError = ref(null)
+const newName = ref('')
+const newColor = ref(null)         // null → auto (derived from name)
+const pinMode = ref('none')        // 'none' | 'set' | 'temporary'
+const newPin = ref('')             // 'set': typed via PinInput · 'temporary': generated
+
+// Random 4-char hex one-time PIN, mirroring the server's reset endpoint.
+function randomPin() {
+  const chars = '0123456789ABCDEF'
+  let s = ''
+  for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * 16)]
+  return s
+}
+
+// Switching mode: a temporary PIN is generated for the admin to relay (shown in
+// the yellow box, same as a reset); a permanent PIN is typed via PinInput.
+function selectPinMode(mode) {
+  pinMode.value = mode
+  newPin.value = mode === 'temporary' ? randomPin() : ''
+}
+
+// Color shown in the live preview: chosen swatch, or the name-derived default.
+const previewColor = computed(() => newColor.value || colorFromName(newName.value || '?'))
+
+// Reset the form whenever the modal opens (TemplateModal mounts content on show,
+// so PinInput starts fresh; we only need to clear the rest).
+watch(newProfileModal, (open) => {
+  if (!open) return
+  newName.value = ''
+  newColor.value = null
+  pinMode.value = 'none'
+  newPin.value = ''
+  createError.value = null
+})
+
+const canCreate = computed(() =>
+  !!newName.value.trim() && (pinMode.value === 'none' || newPin.value.length === 4))
+
+async function createProfile() {
+  createError.value = null
+  const name = newName.value.trim()
+  if (!name) { createError.value = 'Name is required'; return }
+  if (pinMode.value !== 'none' && newPin.value.length !== 4) {
+    createError.value = 'Enter a 4-character PIN'; return
+  }
+  creating.value = true
+  try {
+    const body = { name, role: 'user' }
+    if (newColor.value) body.color = newColor.value
+    if (pinMode.value !== 'none') {
+      body.pin = newPin.value.toUpperCase()
+      body.pinTemporary = pinMode.value === 'temporary'
+    }
+    const res = await fetch('/api/auth/profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) { createError.value = (await res.json()).error; return }
+    const created = await res.json()
+    users.value = [created, ...users.value]
+    newProfileModal.value = false
+  } catch (e) {
+    createError.value = e.message
+  } finally {
+    creating.value = false
+  }
+}
 
 async function load() {
   loading.value = true
@@ -53,6 +142,17 @@ function roleLabel(u) {
 function onUserUpdated(patch) {
   users.value = users.value.map(u => (u._id === patch._id ? { ...u, ...patch } : u))
 }
+
+// Config modal asked to delete this user — close config, open the delete flow.
+function onRequestDelete(u) {
+  configUser.value = null
+  deleteUser.value = u
+}
+
+function onUserDeleted(id) {
+  users.value = users.value.filter(u => u._id !== id)
+}
+
 </script>
 
 <template>
@@ -101,7 +201,13 @@ function onUserUpdated(patch) {
 
         <!-- pin -->
         <div class="hidden sm:flex sm:justify-center">
-          <span v-if="u.hasPin" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-600 dark:text-emerald-400">
+          <span v-if="u.hasPin && u.pinTemporary" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400" title="One-time PIN — user sets their own on next sign-in">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" />
+            </svg>
+            Temporary
+          </span>
+          <span v-else-if="u.hasPin" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-600 dark:text-emerald-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" />
             </svg>
@@ -136,7 +242,10 @@ function onUserUpdated(patch) {
     </div>
 
     <!-- Per-user app/widget config -->
-    <UserConfigModal :user="configUser" @close="configUser = null" @updated="onUserUpdated" />
+    <UserConfigModal :user="configUser" @close="configUser = null" @updated="onUserUpdated" @delete="onRequestDelete" />
+
+    <!-- Permanent user + data deletion -->
+    <UserDeleteModal :user="deleteUser" @close="deleteUser = null" @deleted="onUserDeleted" />
 
     <!-- All groups a user belongs to -->
     <TemplateModal :show="!!groupsUser" panel-class="max-w-xs" @cancel="groupsUser = null">
@@ -154,6 +263,136 @@ function onUserUpdated(patch) {
             class="text-[12px] font-medium px-2.5 py-1 rounded-full bg-slate-500/10 dark:bg-white/8 text-slate-700 dark:text-white/70"
           >{{ g.name }}</li>
         </ul>
+      </div>
+    </TemplateModal>
+
+    <!-- Create user -->
+    <div class="mt-3">
+      <button
+        @click="newProfileModal = true"
+        class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-300/50 dark:border-indigo-400/20 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" /></svg>
+        Create user
+      </button>
+    </div>
+
+    <TemplateModal :show="newProfileModal" panel-class="max-w-sm" @cancel="newProfileModal = false">
+      <div class="flex flex-col" style="max-height: 85vh">
+        <!-- Header -->
+        <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
+          <div>
+            <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Create new user</h2>
+            <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">A new profile for this Nucleus</p>
+          </div>
+          <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="newProfileModal = false">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-5">
+          <!-- Live preview -->
+          <div class="flex justify-center">
+            <AvatarCircle :name="newName.trim() || '?'" :color="previewColor" :size="64" />
+          </div>
+
+          <!-- Name -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Name</label>
+            <input
+              v-model="newName"
+              type="text"
+              maxlength="64"
+              placeholder="e.g. Alex"
+              class="w-full text-sm rounded-xl border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 text-slate-900 dark:text-white px-3 py-2 placeholder:text-slate-400 dark:placeholder:text-white/30"
+              @keydown.enter.prevent="canCreate && createProfile()"
+            />
+          </div>
+
+          <!-- Color -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Color</label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                title="Auto (from name)"
+                class="w-7 h-7 rounded-full flex items-center justify-center border-2 transition-transform hover:scale-110 cursor-pointer"
+                :class="newColor === null ? 'border-slate-900 dark:border-white' : 'border-transparent'"
+                @click="newColor = null"
+              >
+                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 0 0-14.9-2M4 16a8 8 0 0 0 14.9 2" /></svg>
+              </button>
+              <button
+                v-for="c in AVATAR_COLORS"
+                :key="c"
+                type="button"
+                class="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer"
+                :class="newColor === c ? 'border-slate-900 dark:border-white' : 'border-transparent'"
+                :style="{ background: c }"
+                @click="newColor = c"
+              />
+            </div>
+          </div>
+
+          <!-- PIN -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">PIN</label>
+            <div class="flex gap-1.5 bg-slate-500/[0.06] dark:bg-white/[0.04] rounded-xl p-1">
+              <button
+                v-for="m in [{ k: 'none', l: 'No PIN' }, { k: 'set', l: 'Set PIN' }, { k: 'temporary', l: 'Temporary' }]"
+                :key="m.k"
+                type="button"
+                class="flex-1 text-[13px] font-semibold py-1.5 rounded-lg cursor-pointer transition-colors"
+                :class="pinMode === m.k ? 'bg-white dark:bg-white/15 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-500 dark:text-white/50 hover:text-slate-800 dark:hover:text-white'"
+                @click="selectPinMode(m.k)"
+              >{{ m.l }}</button>
+            </div>
+
+            <p v-if="pinMode === 'none'" class="text-[11px] text-slate-400 dark:text-white/40 mt-2">
+              This profile signs in without a PIN.
+            </p>
+
+            <!-- Temporary: generated one-time PIN shown in the yellow box -->
+            <template v-else-if="pinMode === 'temporary'">
+              <div class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mt-3">
+                <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" /></svg>
+                  One-time PIN
+                </p>
+                <p class="font-mono text-2xl font-bold tracking-[0.35em] text-amber-800 dark:text-amber-200 mt-1 pl-1">{{ newPin }}</p>
+                <p class="text-[11px] text-amber-700/80 dark:text-amber-300/70 mt-1">Share with the user. They'll set their own PIN on first sign-in.</p>
+              </div>
+              <button
+                type="button"
+                class="mt-2 text-[12px] font-semibold text-amber-700 dark:text-amber-300 hover:underline cursor-pointer"
+                @click="newPin = randomPin()"
+              >Generate a different PIN</button>
+            </template>
+
+            <!-- Permanent: typed via PinInput -->
+            <template v-else>
+              <p class="text-[11px] text-slate-400 dark:text-white/40 mt-2">
+                The user signs in with this PIN. They can change it later.
+              </p>
+              <div class="mt-3 flex justify-center">
+                <PinInput @complete="pin => newPin = pin" @incomplete="newPin = ''" />
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-200/60 dark:border-white/10">
+          <p class="text-[11px] text-red-500 truncate">{{ createError }}</p>
+          <div class="flex gap-2 shrink-0">
+            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-white/60 bg-slate-500/10 dark:bg-white/8 hover:bg-slate-500/20 cursor-pointer transition-colors" @click="newProfileModal = false">Cancel</button>
+            <button
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 cursor-pointer transition-colors"
+              :disabled="creating || !canCreate"
+              @click="createProfile"
+            >{{ creating ? 'Creating…' : 'Create user' }}</button>
+          </div>
+        </div>
       </div>
     </TemplateModal>
   </section>
