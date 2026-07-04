@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 
@@ -18,7 +18,23 @@ const tab = ref('details')
 // ── Details (name / role / PIN) ───────────────────────────────────────────────
 const name = ref('')
 const role = ref('user')
+const locale = ref('')                  // '' = fall back to the instance default
+const installedLanguages = ref(['en-US'])
 const pinSet = ref(false)
+
+// Language options come from the localization config (admin-installed languages).
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/auth/i18n/config', { credentials: 'include' })
+    if (res.ok) installedLanguages.value = (await res.json()).installedLanguages || ['en-US']
+  } catch {}
+})
+
+// Friendly display name for a BCP-47 tag, falling back to the raw tag.
+const langLabel = (tag) => {
+  try { return new Intl.DisplayNames([tag], { type: 'language' }).of(tag.split('-')[0]) || tag }
+  catch { return tag }
+}
 const pinTemporaryStatus = ref(false)   // current PIN is a one-time PIN
 const tempPin = ref(null)               // plaintext one-time PIN to relay, while active
 const resettingPin = ref(false)
@@ -39,6 +55,7 @@ watch(() => props.user, (u) => {
   tab.value = 'details'
   name.value = u.name ?? ''
   role.value = u.role === 'admin' ? 'admin' : 'user'
+  locale.value = u.locale ?? ''
   savedRole.value = role.value
   pinSet.value = !!u.hasPin
   pinTemporaryStatus.value = !!u.hasPin && !!u.pinTemporary
@@ -73,11 +90,11 @@ async function saveDetails() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ name: n, role: role.value }),
+      body: JSON.stringify({ name: n, role: role.value, locale: locale.value || null }),
     })
     if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`)
     savedRole.value = role.value
-    emit('updated', { _id: props.user._id, name: n, role: role.value })
+    emit('updated', { _id: props.user._id, name: n, role: role.value, locale: locale.value || null })
   } catch (e) {
     detailsError.value = e.message
   } finally {
@@ -226,6 +243,18 @@ async function toggle(it) {
               @click="role = r"
             >{{ r }}</button>
           </div>
+        </div>
+
+        <div v-if="!isGuest">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Language</label>
+          <select
+            v-model="locale"
+            class="w-full text-sm rounded-xl border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 text-slate-900 dark:text-white px-3 py-2 cursor-pointer"
+          >
+            <option value="">Default</option>
+            <option v-for="l in installedLanguages" :key="l" :value="l">{{ langLabel(l) }} ({{ l }})</option>
+          </select>
+          <p class="text-[11px] text-slate-400 dark:text-white/35 mt-1.5">The UI language for {{ user?.name }}. “Default” uses the instance language.</p>
         </div>
 
         <div>

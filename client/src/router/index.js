@@ -14,6 +14,7 @@ export default createRouter({
         { path: 'groups',   component: () => import('@/views/GroupsView.vue') },
         { path: 'apps',     component: () => import('@/views/AppsView.vue') },
         { path: 'widgets',  component: () => import('@/views/WidgetsView.vue') },
+        { path: 'localization', component: () => import('@/views/LocalizationView.vue') },
       ],
     },
   ],
