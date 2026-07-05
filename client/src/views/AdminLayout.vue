@@ -23,6 +23,7 @@ const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
   { to: '/localization', label: 'Localization' },
+  { to: '/maintenance', label: 'Maintenance' },
 ]
 
 // ── Global-toggles dropdown ───────────────────────────────────────────────────

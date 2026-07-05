@@ -15,6 +15,7 @@ export default createRouter({
         { path: 'apps',     component: () => import('@/views/AppsView.vue') },
         { path: 'widgets',  component: () => import('@/views/WidgetsView.vue') },
         { path: 'localization', component: () => import('@/views/LocalizationView.vue') },
+        { path: 'maintenance', component: () => import('@/views/MaintenanceView.vue') },
       ],
     },
   ],
