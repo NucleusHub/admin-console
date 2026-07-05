@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import ConfirmGlobalModal from '@/components/ConfirmGlobalModal.vue'
 import AppIcon from '@core/AppIcon.vue'
+import VersionBadge from '@core/VersionBadge.vue'
 
 const apps = ref([])
 const disabled = ref(new Set()) // globally-disabled ids
@@ -87,6 +88,7 @@ async function applyToggle() {
               <span v-if="isOff(a.id)" class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
             </div>
             <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5 line-clamp-2">{{ a.description }}</p>
+            <VersionBadge v-if="a.version" :version="a.version" class="mt-1.5" />
           </div>
         </div>
         <span

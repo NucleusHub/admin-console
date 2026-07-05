@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import ConfirmGlobalModal from '@/components/ConfirmGlobalModal.vue'
+import VersionBadge from '@core/VersionBadge.vue'
 
 const widgets = ref([])
 const disabled = ref(new Set()) // globally-disabled ids
@@ -91,6 +92,7 @@ async function applyToggle() {
 
         <!-- Meta + action: wraps below the name on narrow screens -->
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          <VersionBadge v-if="w.version" :version="w.version" class="shrink-0" />
           <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
           <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
 
