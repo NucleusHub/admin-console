@@ -42,6 +42,13 @@ onMounted(loadOverview)
 const notInstalled = computed(() =>
   (overview.value?.installable || []).filter(l => !overview.value.installedLanguages.includes(l)))
 
+// A language is enabled if it's on for at least one scope (overview.enabledLanguages).
+const enabledSet = computed(() => new Set(overview.value?.enabledLanguages || []))
+const isEnabled = (l) => enabledSet.value.has(l)
+// Never let the last installed / last enabled language be removed or disabled.
+const canUninstall = computed(() => (overview.value?.installedLanguages.length || 0) > 1)
+const canDisable = computed(() => (overview.value?.enabledLanguages.length || 0) > 1)
+
 async function installLang() {
   if (!installChoice.value || busy.value) return
   busy.value = true
@@ -49,10 +56,24 @@ async function installLang() {
   catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
-async function removeLang(lang) {
-  if (busy.value) return
+async function uninstallLang(lang) {
+  if (busy.value || !canUninstall.value) return
   busy.value = true
   try { await j(`/api/auth/i18n/admin/languages/${lang}`, { method: 'DELETE' }); await loadOverview() }
+  catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function setLanguageEnabled(lang, enabled) {
+  if (busy.value) return
+  busy.value = true
+  try { await j(`/api/auth/i18n/admin/languages/${lang}/enabled`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) }); await loadOverview() }
+  catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function setDefault(lang) {
+  if (busy.value) return
+  busy.value = true
+  try { await j('/api/auth/i18n/admin/default', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lang }) }); await loadOverview() }
   catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
@@ -121,23 +142,43 @@ async function saveOverride(k) {
       <!-- Installed languages -->
       <section class="rounded-2xl bg-white/60 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 p-5">
         <h2 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-3">Installed languages</h2>
-        <div class="flex flex-wrap gap-2">
-          <span
-            v-for="l in overview.installedLanguages"
-            :key="l"
-            class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl text-sm font-medium bg-black/5 dark:bg-white/8 text-slate-800 dark:text-white"
-          >
-            {{ langLabel(l) }} <span class="text-slate-400 dark:text-white/40 text-xs">{{ l }}</span>
+        <ul class="flex flex-col divide-y divide-slate-200/60 dark:divide-white/8">
+          <li v-for="l in overview.installedLanguages" :key="l" class="flex items-center gap-3 py-2.5">
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ langLabel(l) }}</span>
+              <span class="ml-1.5 text-xs text-slate-400 dark:text-white/40">{{ l }}</span>
+              <span v-if="l === overview.defaultLanguage" class="ml-2 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded">Default</span>
+            </div>
+
             <button
-              v-if="l !== 'en-US'"
-              class="cursor-pointer p-0.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-              title="Uninstall"
-              @click="removeLang(l)"
-            >
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </span>
-        </div>
+              v-if="l !== overview.defaultLanguage"
+              class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline cursor-pointer disabled:opacity-40 disabled:no-underline"
+              :disabled="busy"
+              title="Make this the instance default language"
+              @click="setDefault(l)"
+            >Set default</button>
+
+            <span
+              class="text-[11px] font-semibold px-2 py-0.5 rounded"
+              :class="isEnabled(l) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' : 'text-slate-400 dark:text-white/40 bg-slate-500/10 dark:bg-white/8'"
+            >{{ isEnabled(l) ? 'Enabled' : 'Disabled' }}</span>
+
+            <button
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              :class="isEnabled(l) ? 'text-amber-600 dark:text-amber-400 bg-amber-500/12 hover:bg-amber-500/22' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/12 hover:bg-emerald-500/22'"
+              :disabled="busy || (isEnabled(l) && !canDisable)"
+              :title="isEnabled(l) && !canDisable ? 'At least one language must stay enabled' : ''"
+              @click="setLanguageEnabled(l, !isEnabled(l))"
+            >{{ isEnabled(l) ? 'Disable' : 'Enable' }}</button>
+
+            <button
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="busy || !canUninstall"
+              :title="!canUninstall ? 'At least one language must stay installed' : ''"
+              @click="uninstallLang(l)"
+            >Uninstall</button>
+          </li>
+        </ul>
         <div v-if="notInstalled.length" class="flex items-center gap-2 mt-4">
           <select v-model="installChoice" class="text-sm rounded-xl border border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/5 text-slate-900 dark:text-white px-3 py-2 cursor-pointer">
             <option value="">Add a language…</option>
