@@ -59,13 +59,27 @@ async function confirm() {
     const check = await fetch(`/api/auth/profiles/${id}/confirm-delete`, { method: 'POST', body, ...opts })
     if (!check.ok) throw new Error((await check.json()).error || `HTTP ${check.status}`)
 
-    // 2. Tear down the user's data in every app.
+    // 2. Tear down the user's data in every installed app. We gate on the
+    // registry (fetched fresh here) so we only hit apps that are actually
+    // present — an uninstalled app has no route and its teardown would 404. The
+    // best-effort fallback in teardown() still covers apps mid-uninstall.
     step.value = 'Deleting files & data…'
-    await teardown('Orbit', `/api/orbit/profiles/${id}/teardown`)
-    await teardown('Echo', `/api/echo/users/${id}/teardown`)
-    await teardown('Goals', `/api/goals/users/${id}/teardown`)
-    await teardown('Watchlist', `/api/watchlist/users/${id}/teardown`)
-    await teardown('Pulse', `/api/pulse/dashboard/users/${id}/teardown`)
+    const installed = new Set(
+      await fetch('/api/registry/apps')
+        .then(r => (r.ok ? r.json() : []))
+        .then(list => list.map(a => a.id))
+        .catch(() => []),
+    )
+    const TEARDOWNS = [
+      { id: 'orbit',         label: 'Orbit',     url: `/api/orbit/profiles/${id}/teardown` },
+      { id: 'echo',          label: 'Echo',      url: `/api/echo/users/${id}/teardown` },
+      { id: 'goal-calendar', label: 'Goals',     url: `/api/goals/users/${id}/teardown` },
+      { id: 'watchlist',     label: 'Watchlist', url: `/api/watchlist/users/${id}/teardown` },
+      { id: 'pulse',         label: 'Pulse',     url: `/api/pulse/dashboard/users/${id}/teardown` },
+    ]
+    for (const app of TEARDOWNS) {
+      if (installed.has(app.id)) await teardown(app.label, app.url)
+    }
 
     // 3. Drop group membership, overrides and the profile itself.
     step.value = 'Removing profile…'
