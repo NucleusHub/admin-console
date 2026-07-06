@@ -192,7 +192,7 @@ async function toggleAccess(it) {
               class="flex items-center gap-3 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-slate-100/60 dark:hover:bg-white/5"
               @click="toggleMember(u)"
             >
-              <AvatarCircle :name="u.name" :color="u.color" :emoji="u.emoji" :admin="u.role === 'admin'" :size="28" />
+              <AvatarCircle :profile="u" :size="28" />
               <span class="text-sm font-medium text-slate-900 dark:text-white flex-1 truncate">{{ u.name }}</span>
               <span class="shrink-0 w-5 h-5 rounded-md border flex items-center justify-center transition-colors" :class="members.has(u._id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 dark:border-white/20'">
                 <svg v-if="members.has(u._id)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>

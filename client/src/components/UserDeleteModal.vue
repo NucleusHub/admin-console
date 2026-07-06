@@ -87,7 +87,7 @@ async function confirm() {
   <TemplateModal :show="!!user" panel-class="max-w-md" @cancel="busy || emit('close')">
     <div class="p-5 flex flex-col gap-4">
       <div class="flex items-center gap-3">
-        <AvatarCircle v-if="user" :name="user.name" :color="user.color" :emoji="user.emoji" :size="40" />
+        <AvatarCircle v-if="user" :profile="user" :size="40" />
         <div>
           <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Delete “{{ user?.name }}”?</h2>
           <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">This account and everything in it.</p>

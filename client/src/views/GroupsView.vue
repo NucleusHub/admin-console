@@ -121,7 +121,7 @@ function onDeleted(id) {
             <AvatarCircle
               v-for="u in membersOf(g).slice(0, 4)"
               :key="u._id"
-              :name="u.name" :color="u.color" :emoji="u.emoji" :size="26"
+              :profile="u" :size="26"
               class="ring-2 ring-white dark:ring-slate-900 rounded-full"
             />
             <span v-if="!membersOf(g).length" class="text-xs text-slate-400 dark:text-white/35">No members</span>

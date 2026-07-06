@@ -178,7 +178,7 @@ function onUserDeleted(id) {
       >
         <!-- name -->
         <div class="flex items-center gap-3 min-w-0">
-          <AvatarCircle :name="u.name" :color="u.color" :emoji="u.emoji" :admin="u.role === 'admin'" :size="34" />
+          <AvatarCircle :profile="u" :size="34" />
           <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ u.name }}</span>
         </div>
 
