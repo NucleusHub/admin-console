@@ -132,7 +132,7 @@ async function toggleAccess(it) {
 </script>
 
 <template>
-  <TemplateModal :show="show" panel-class="max-w-md" @cancel="saving || emit('close')">
+  <TemplateModal :show="show" size="md" @cancel="saving || emit('close')">
     <div class="flex flex-col" style="max-height: 82vh">
       <!-- Header -->
       <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">

@@ -38,7 +38,7 @@ async function confirm() {
 </script>
 
 <template>
-  <TemplateModal :show="!!announcement" panel-class="max-w-md" @cancel="busy || emit('close')">
+  <TemplateModal :show="!!announcement" size="md" @cancel="busy || emit('close')">
     <div class="p-5 flex flex-col gap-4">
       <div>
         <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Delete “{{ announcement?.version }}”?</h2>

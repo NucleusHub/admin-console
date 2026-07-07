@@ -98,7 +98,7 @@ async function confirm() {
 </script>
 
 <template>
-  <TemplateModal :show="!!user" panel-class="max-w-md" @cancel="busy || emit('close')">
+  <TemplateModal :show="!!user" size="md" @cancel="busy || emit('close')">
     <div class="p-5 flex flex-col gap-4">
       <div class="flex items-center gap-3">
         <AvatarCircle v-if="user" :profile="user" :size="40" />

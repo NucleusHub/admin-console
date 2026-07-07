@@ -248,7 +248,7 @@ function onUserDeleted(id) {
     <UserDeleteModal :user="deleteUser" @close="deleteUser = null" @deleted="onUserDeleted" />
 
     <!-- All groups a user belongs to -->
-    <TemplateModal :show="!!groupsUser" panel-class="max-w-xs" @cancel="groupsUser = null">
+    <TemplateModal :show="!!groupsUser" size="xs" @cancel="groupsUser = null">
       <div class="p-5">
         <div class="flex items-start justify-between mb-3">
           <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ groupsUser?.name }}'s groups</h2>
@@ -277,7 +277,7 @@ function onUserDeleted(id) {
       </button>
     </div>
 
-    <TemplateModal :show="newProfileModal" panel-class="max-w-sm" @cancel="newProfileModal = false">
+    <TemplateModal :show="newProfileModal" size="sm" @cancel="newProfileModal = false">
       <div class="flex flex-col" style="max-height: 85vh">
         <!-- Header -->
         <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">

@@ -62,7 +62,7 @@ async function confirm() {
 </script>
 
 <template>
-  <TemplateModal :show="!!group" panel-class="max-w-md" @cancel="busy || emit('close')">
+  <TemplateModal :show="!!group" size="md" @cancel="busy || emit('close')">
     <div class="p-5 flex flex-col gap-4">
       <div>
         <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Delete “{{ group?.name }}”?</h2>
