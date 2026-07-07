@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import WhatsNewDeleteModal from '../components/WhatsNewDeleteModal.vue'
 
 // Admin control for the "What's New" changelog. Announcements accumulate into a
 // cumulative, per-app-tabbed changelog shown to users on login (once per new
@@ -188,16 +189,14 @@ async function setPublished(a, published) {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
-async function deleteAnnouncement(a) {
-  if (busy.value) return
-  if (!confirm(`Delete announcement “${a.version}”? This can't be undone.`)) return
-  busy.value = true
-  error.value = null
-  try {
-    await j(`/api/auth/whats-new/announcements/${a._id}`, { method: 'DELETE' })
-    closeEdit()
-    await load()
-  } catch (e) { error.value = e.message } finally { busy.value = false }
+// Deletion is confirmed in WhatsNewDeleteModal (below) rather than a native
+// confirm() — this just tracks which announcement the modal is asking about.
+const deleteTarget = ref(null)
+function askDelete(a) { if (!busy.value) deleteTarget.value = a }
+async function onDeleted() {
+  deleteTarget.value = null
+  closeEdit()
+  await load()
 }
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : ''
@@ -281,7 +280,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : ''
               @click="setPublished(a, !a.published)"
             >{{ a.published ? 'Unpublish' : 'Publish' }}</button>
             <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 cursor-pointer transition-colors" @click="openEdit(a)">Edit</button>
-            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22 cursor-pointer transition-colors disabled:opacity-40" :disabled="busy" @click="deleteAnnouncement(a)">Delete</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/12 hover:bg-red-500/22 cursor-pointer transition-colors disabled:opacity-40" :disabled="busy" @click="askDelete(a)">Delete</button>
           </li>
         </ul>
 
@@ -344,5 +343,12 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : ''
         </div>
       </section>
     </template>
+
+    <!-- Delete confirmation -->
+    <WhatsNewDeleteModal
+      :announcement="deleteTarget"
+      @close="deleteTarget = null"
+      @deleted="onDeleted"
+    />
   </div>
 </template>

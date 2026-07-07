@@ -29,11 +29,22 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@core': fileURLToPath(new URL('./core', import.meta.url)),
+      // Shared widget package (via the ./widgets symlink → repo /widgets), so
+      // this app can render Pulse widgets that opt in to showing here.
+      '@widgets-core': fileURLToPath(new URL('./widgets/core', import.meta.url)),
     },
   },
   server: {
     host: '0.0.0.0',
     port: 5178,
+    proxy: {
+      // Pulse state, so widgets that opt in to showing here can load in dev.
+      // (Prod nginx routes /api/pulse centrally; this is dev-only.)
+      '/api/pulse': {
+        target: process.env.PULSE_TARGET || 'http://localhost:3004',
+        changeOrigin: true,
+      },
+    },
     allowedHosts: [process.env.NUCLEUS_HOST || 'nucleus.olm-altair.ts.net'],
   },
 }))
