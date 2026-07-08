@@ -7,6 +7,7 @@ import GroupDeleteModal from '@/components/GroupDeleteModal.vue'
 const groups = ref([])
 const users = ref([])           // non-guest profiles
 const orbitInstalled = ref(false)
+const prismInstalled = ref(false)
 const loading = ref(true)
 const error = ref(null)
 
@@ -36,6 +37,7 @@ async function load() {
     groups.value = gs
     users.value = profiles.filter(p => !p.isGuest)
     orbitInstalled.value = regApps.some(a => a.id === 'orbit')
+    prismInstalled.value = regApps.some(a => a.id === 'prism')
   } catch (e) {
     error.value = e.message
   } finally {
@@ -143,9 +145,10 @@ function onDeleted(id) {
       :group="editTarget"
       :users="users"
       :orbit-installed="orbitInstalled"
+      :prism-installed="prismInstalled"
       @close="editing = false"
       @saved="onSaved"
     />
-    <GroupDeleteModal :group="deleteGroup" :users="users" :orbit-installed="orbitInstalled" @close="deleteGroup = null" @deleted="onDeleted" />
+    <GroupDeleteModal :group="deleteGroup" :users="users" :orbit-installed="orbitInstalled" :prism-installed="prismInstalled" @close="deleteGroup = null" @deleted="onDeleted" />
   </section>
 </template>

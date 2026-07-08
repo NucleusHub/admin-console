@@ -11,6 +11,7 @@ const props = defineProps({
   group: { type: Object, default: null },     // null = create mode
   users: { type: Array, default: () => [] },   // non-guest profiles
   orbitInstalled: { type: Boolean, default: false },
+  prismInstalled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close', 'saved'])
 
@@ -20,9 +21,17 @@ const isEdit = computed(() => !!props.group)
 const tab = ref('details')
 const name = ref('')
 const sharedOrbit = ref(false)
+const sharedPrism = ref(false)
+const albumJoint = ref(false)   // shared album mirrors the Orbit shared folder
 const members = ref(new Set())
 const saving = ref(false)
 const error = ref(null)
+
+// "Joint" only makes sense with Orbit + shared storage; otherwise a group's
+// shared album is always a standalone Prism album.
+const canJoin = computed(() => props.orbitInstalled && sharedOrbit.value)
+// Turning shared storage off (or losing Orbit) forces the album back to standalone.
+watch([sharedOrbit, () => props.orbitInstalled], () => { if (!canJoin.value) albumJoint.value = false })
 
 watch(() => props.show, (open) => {
   if (!open) return
@@ -30,6 +39,8 @@ watch(() => props.show, (open) => {
   error.value = null
   name.value = props.group?.name ?? ''
   sharedOrbit.value = !!props.group?.sharedOrbit
+  sharedPrism.value = !!props.group?.sharedPrism
+  albumJoint.value = !!props.group?.prismAlbumJoint
   members.value = new Set((props.group?.memberIds ?? []).map(String))
   if (isEdit.value) loadAccess(props.group._id)
 }, { immediate: true })
@@ -46,7 +57,13 @@ async function save() {
   saving.value = true
   error.value = null
   try {
-    const body = { name: n, sharedOrbit: sharedOrbit.value, memberIds: [...members.value] }
+    const body = {
+      name: n,
+      sharedOrbit: sharedOrbit.value,
+      sharedPrism: sharedPrism.value,
+      prismAlbumJoint: sharedPrism.value && canJoin.value && albumJoint.value,
+      memberIds: [...members.value],
+    }
     const res = await fetch(
       isEdit.value ? `/api/auth/groups/${props.group._id}` : '/api/auth/groups',
       {
@@ -181,6 +198,51 @@ async function toggleAccess(it) {
             <span class="block w-4 h-4 rounded-full bg-white transition-transform" :class="sharedOrbit ? 'translate-x-4' : ''" />
           </span>
         </button>
+
+        <!-- Shared album (Prism) — available even without Orbit -->
+        <div v-if="prismInstalled" class="rounded-xl bg-slate-500/[0.06] dark:bg-white/[0.04] overflow-hidden">
+          <button
+            type="button"
+            class="w-full flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer"
+            @click="sharedPrism = !sharedPrism"
+          >
+            <div class="text-left">
+              <p class="text-[13px] font-medium text-slate-700 dark:text-white/80">Shared album</p>
+              <p class="text-[11px] text-slate-400 dark:text-white/35">A shared photo album in Prism for every member</p>
+            </div>
+            <span class="shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors" :class="sharedPrism ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-white/15'">
+              <span class="block w-4 h-4 rounded-full bg-white transition-transform" :class="sharedPrism ? 'translate-x-4' : ''" />
+            </span>
+          </button>
+
+          <!-- Joint vs standalone — only meaningful when Orbit is installed -->
+          <div v-if="sharedPrism && orbitInstalled" class="px-3 pb-3 pt-0.5 flex flex-col gap-1.5">
+            <button
+              type="button"
+              class="text-left rounded-lg border px-3 py-2 transition-colors cursor-pointer"
+              :class="!albumJoint ? 'border-indigo-500/60 bg-indigo-500/10' : 'border-slate-200 dark:border-white/10'"
+              @click="albumJoint = false"
+            >
+              <p class="text-[12px] font-semibold text-slate-800 dark:text-white/90">Separate Prism album</p>
+              <p class="text-[11px] text-slate-400 dark:text-white/35">Members add photos to it directly in Prism.</p>
+            </button>
+            <button
+              type="button"
+              class="text-left rounded-lg border px-3 py-2 transition-colors"
+              :class="[
+                albumJoint ? 'border-indigo-500/60 bg-indigo-500/10' : 'border-slate-200 dark:border-white/10',
+                canJoin ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed',
+              ]"
+              :disabled="!canJoin"
+              @click="canJoin && (albumJoint = true)"
+            >
+              <p class="text-[12px] font-semibold text-slate-800 dark:text-white/90">Linked to shared Orbit folder</p>
+              <p class="text-[11px] text-slate-400 dark:text-white/35">
+                {{ canJoin ? 'Mirrors the group’s shared folder — managed in Orbit.' : 'Turn on Shared storage first.' }}
+              </p>
+            </button>
+          </div>
+        </div>
 
         <!-- Members -->
         <div>

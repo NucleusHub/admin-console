@@ -9,6 +9,7 @@ const props = defineProps({
   group: { type: Object, default: null },
   users: { type: Array, default: () => [] }, // for the transfer target
   orbitInstalled: { type: Boolean, default: false },
+  prismInstalled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close', 'deleted'])
 
@@ -46,6 +47,13 @@ async function confirm() {
         body: JSON.stringify(body),
       })
       if (!teardown.ok && teardown.status !== 404) throw new Error(`Orbit teardown failed (HTTP ${teardown.status})`)
+    }
+
+    // 1b. Drop Prism's shared albums / index rows for the group (best-effort).
+    if (props.prismInstalled) {
+      await fetch(`/api/prism/groups/${props.group._id}/teardown`, {
+        method: 'POST', credentials: 'include',
+      }).catch(() => {})
     }
 
     // 2. Delete the group (and its override rows).
