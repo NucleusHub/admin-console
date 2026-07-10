@@ -65,7 +65,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
       <template #left>
         <button
           @click="sidebarOpen = true"
-          class="cursor-pointer p-2 -ml-1 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/8 transition-colors"
+          class="nuc-press cursor-pointer p-2 -ml-1 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/8 transition-colors"
           aria-label="Open navigation"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -145,7 +145,11 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
     </nav>
 
     <main class="px-4 md:px-6 pt-6 pb-24 max-w-5xl mx-auto">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
   </div>
 </template>
@@ -153,5 +157,16 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 <style scoped>
 .gt-enter-active, .gt-leave-active { transition: opacity 0.13s ease, transform 0.13s ease; }
 .gt-enter-from, .gt-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* Cross-fade between admin sections. */
+.page-enter-active { transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.page-leave-active { transition: opacity 0.12s ease; }
+.page-enter-from { opacity: 0; transform: translateY(8px); }
+.page-leave-to { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active, .page-leave-active { transition: opacity 0.12s ease; }
+  .page-enter-from { transform: none; }
+}
 </style>
 

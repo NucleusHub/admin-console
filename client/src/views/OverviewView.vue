@@ -61,7 +61,7 @@ const CARDS = [
       <div
         v-for="c in CARDS"
         :key="c.key"
-        class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] p-4 sm:p-5"
+        class="nuc-lift rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] p-4 sm:p-5"
       >
         <p class="text-2xl sm:text-3xl font-bold tabular-nums" :class="c.accent">{{ stats[c.key] }}</p>
         <p class="text-[13px] font-medium text-slate-500 dark:text-white/50 mt-1">{{ c.label }}</p>
