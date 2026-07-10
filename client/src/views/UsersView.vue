@@ -270,9 +270,9 @@ function onUserDeleted(id) {
     <div class="mt-3">
       <button
         @click="newProfileModal = true"
-        class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-300/50 dark:border-indigo-400/20 transition-colors"
+        class="group cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-300/50 dark:border-indigo-400/20 transition-colors"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" /></svg>
+        <svg class="w-4 h-4 nuc-pop" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" /></svg>
         Create user
       </button>
     </div>
