@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import AppSidebar from '@core/AppSidebar.vue'
 import AppHeader from '@core/AppHeader.vue'
 import { useAuth } from '@core/auth/useAuth.js'
+import { pluginAdminTabs } from '@/plugins.js'
+import { usePluginOverrides } from '@/pluginOverrides.js'
 
 const { profile } = useAuth()
 // AuthGuard only renders us once a session is loaded, so profile is set here.
@@ -22,24 +24,41 @@ const MAIN_TABS = [
 const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
+  { to: '/plugins',  label: 'Plugins' },
   { to: '/localization', label: 'Localization' },
   { to: '/maintenance', label: 'Maintenance' },
-  { to: '/whats-new', label: "What's New" },
 ]
+
+// ── Plugin-contributed tabs ───────────────────────────────────────────────────
+// Tabs declared by plugins (extensions.adminTabs), shown in their own "Plugins"
+// category. A globally-disabled plugin's tabs are hidden. Nothing here is
+// hardcoded per-plugin — the metadata comes from each plugin's manifest.
+// Shared with the Plugins page, so a toggle there updates these tabs instantly.
+const { disabled: disabledPlugins, load: loadDisabledPlugins } = usePluginOverrides()
+const PLUGIN_TABS = computed(() =>
+  pluginAdminTabs
+    .filter(t => !disabledPlugins.value.has(t.pluginId))
+    .map(t => ({ to: '/' + t.path, label: t.label })),
+)
 
 // ── Global-toggles dropdown ───────────────────────────────────────────────────
 const route = useRoute()
 const globalOpen = ref(false)
 const globalMenu = ref(null)
-// Highlight the chevron while a global tab is the active route.
-const globalActive = computed(() => GLOBAL_TABS.some(t => route.path.startsWith(t.to)))
+// Highlight the chevron while a global OR plugin tab is the active route.
+const globalActive = computed(() =>
+  [...GLOBAL_TABS, ...PLUGIN_TABS.value].some(t => route.path.startsWith(t.to)),
+)
 
 // Close on outside click and whenever the route changes.
 function onDocClick(e) {
   if (globalOpen.value && globalMenu.value && !globalMenu.value.contains(e.target)) globalOpen.value = false
 }
 watch(() => route.path, () => { globalOpen.value = false })
-onMounted(() => document.addEventListener('click', onDocClick))
+onMounted(() => {
+  document.addEventListener('click', onDocClick)
+  loadDisabledPlugins()
+})
 onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
@@ -107,6 +126,18 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
           >{{ t.label }}</RouterLink>
         </div>
 
+        <!-- Desktop: plugin-contributed tabs, their own category (mirrors Global toggles) -->
+        <div v-if="PLUGIN_TABS.length" class="hidden sm:flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+          <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plugins</span>
+          <RouterLink
+            v-for="t in PLUGIN_TABS"
+            :key="t.to"
+            :to="t.to"
+            class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
+            active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
+          >{{ t.label }}</RouterLink>
+        </div>
+
         <!-- Mobile: global toggles open from the chevron after Groups -->
         <div ref="globalMenu" class="relative flex items-stretch sm:hidden">
           <button
@@ -138,6 +169,19 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
                 active-class="!text-indigo-600 dark:!text-indigo-300 bg-indigo-500/10"
                 @click="globalOpen = false"
               >{{ t.label }}</RouterLink>
+
+              <template v-if="PLUGIN_TABS.length">
+                <div class="my-1 border-t border-slate-200/70 dark:border-white/10"></div>
+                <p class="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plugins</p>
+                <RouterLink
+                  v-for="t in PLUGIN_TABS"
+                  :key="t.to"
+                  :to="t.to"
+                  class="block px-3 py-2 rounded-lg text-[13px] font-semibold text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/8 transition-colors"
+                  active-class="!text-indigo-600 dark:!text-indigo-300 bg-indigo-500/10"
+                  @click="globalOpen = false"
+                >{{ t.label }}</RouterLink>
+              </template>
             </div>
           </Transition>
         </div>

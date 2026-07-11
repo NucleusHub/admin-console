@@ -79,9 +79,8 @@ async function applyToggle() {
         v-for="w in widgets"
         :key="w.id"
         class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.06] last:border-0"
-        :class="{ 'opacity-55': isOff(w.id) || providerOff(w) }"
       >
-        <div class="min-w-0 w-full sm:flex-1">
+        <div class="min-w-0 w-full sm:flex-1" :class="{ 'opacity-55': isOff(w.id) || providerOff(w) }">
           <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ w.name }}</p>
           <p class="text-xs text-slate-500 dark:text-white/45 truncate">{{ w.description }}</p>
           <p v-if="w.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
@@ -92,9 +91,12 @@ async function applyToggle() {
 
         <!-- Meta + action: wraps below the name on narrow screens -->
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-          <VersionBadge v-if="w.version" :version="w.version" class="shrink-0" />
-          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
-          <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
+          <!-- Badges dim with the row; the action button below stays vivid -->
+          <div class="flex items-center gap-2" :class="{ 'opacity-55': isOff(w.id) || providerOff(w) }">
+            <VersionBadge v-if="w.version" :version="w.version" class="shrink-0" />
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
+            <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
+          </div>
 
           <!-- Core/required widgets can't be disabled -->
           <span
