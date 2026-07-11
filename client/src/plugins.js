@@ -11,7 +11,10 @@
 // (symlink → repo /plugins, mounted at /app/plugins in the container), mirroring
 // how `core` is wired.
 const manifests = import.meta.glob('../plugins/*/nucleus.plugin.json', { eager: true, import: 'default' })
-const components = import.meta.glob('../plugins/*/**/*.vue')
+// Only admin-tab components (convention: a plugin ships them under client/admin/).
+// Globbing all plugin .vue would also pull in statically-imported components like
+// the banners/modals, which Rollup warns can't be split into their own chunk.
+const components = import.meta.glob('../plugins/*/client/admin/**/*.vue')
 
 function build() {
   const tabs = []

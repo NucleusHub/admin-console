@@ -22,7 +22,6 @@ export default createRouter({
         { path: 'widgets',  component: () => import('@/views/WidgetsView.vue') },
         { path: 'plugins',  component: () => import('@/views/PluginsView.vue') },
         { path: 'localization', component: () => import('@/views/LocalizationView.vue') },
-        { path: 'maintenance', component: () => import('@/views/MaintenanceView.vue') },
         ...pluginRoutes,
       ],
     },

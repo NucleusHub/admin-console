@@ -26,7 +26,6 @@ const GLOBAL_TABS = [
   { to: '/widgets',  label: 'Widgets' },
   { to: '/plugins',  label: 'Plugins' },
   { to: '/localization', label: 'Localization' },
-  { to: '/maintenance', label: 'Maintenance' },
 ]
 
 // ── Plugin-contributed tabs ───────────────────────────────────────────────────
