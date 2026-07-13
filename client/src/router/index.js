@@ -21,7 +21,8 @@ export default createRouter({
         { path: 'apps',     component: () => import('@/views/AppsView.vue') },
         { path: 'widgets',  component: () => import('@/views/WidgetsView.vue') },
         { path: 'plugins',  component: () => import('@/views/PluginsView.vue') },
-        { path: 'localization', component: () => import('@/views/LocalizationView.vue') },
+        // Localization is now a plugin (plugins/localization); its route + nav tab
+        // come from pluginRoutes/pluginAdminTabs like any other plugin.
         ...pluginRoutes,
       ],
     },

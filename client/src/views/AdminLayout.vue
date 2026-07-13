@@ -25,7 +25,8 @@ const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
   { to: '/plugins',  label: 'Plugins' },
-  { to: '/localization', label: 'Localization' },
+  // Localization moved to a plugin (plugins/localization) — its tab now comes
+  // from PLUGIN_TABS below, so it hides when the plugin is disabled/uninstalled.
 ]
 
 // ── Plugin-contributed tabs ───────────────────────────────────────────────────

@@ -11,6 +11,9 @@
   "locked": true,
   "icon": "icon.svg",
   "category": "system",
+  "localization": {
+    "defaultLanguage": "en-US"
+  },
   "hub": {
     "showInSidebar": false,
     "showOnDashboard": false
