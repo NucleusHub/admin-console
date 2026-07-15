@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
+import AppTabs from '@core/AppTabs.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 
 // Per-user config: a Details tab (name, role, PIN) plus per-user app/widget
@@ -209,15 +210,11 @@ async function toggle(it) {
       </div>
 
       <!-- Tabs -->
-      <div class="flex gap-5 px-5 border-b border-slate-200/60 dark:border-white/10">
-        <button
-          v-for="t in [{ key: 'details', label: 'Details' }, { key: 'apps', label: 'Apps' }, { key: 'widgets', label: 'Widgets' }]"
-          :key="t.key"
-          class="cursor-pointer pt-3 pb-2.5 -mb-px text-sm font-semibold border-b-2 transition-colors"
-          :class="tab === t.key ? 'border-indigo-500 text-indigo-600 dark:text-indigo-300' : 'border-transparent text-slate-500 dark:text-white/50 hover:text-slate-800 dark:hover:text-white'"
-          @click="tab = t.key"
-        >{{ t.label }}</button>
-      </div>
+      <AppTabs
+        v-model="tab"
+        :tabs="[{ key: 'details', label: 'Details' }, { key: 'apps', label: 'Apps' }, { key: 'widgets', label: 'Widgets' }]"
+        class="px-5 border-b border-slate-200/60 dark:border-white/10"
+      />
 
       <!-- DETAILS -->
       <div v-show="tab === 'details'" class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-4">

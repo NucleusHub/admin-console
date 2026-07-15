@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from '@core/AppSidebar.vue'
 import AppHeader from '@core/AppHeader.vue'
+import AppTabs from '@core/AppTabs.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 import { pluginAdminTabs } from '@/plugins.js'
 import { usePluginOverrides } from '@/pluginOverrides.js'
@@ -106,36 +107,18 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
          single non-scrolling row on phones. -->
     <nav class="sticky top-16 z-20 px-4 pt-4 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-b from-transparent to-transparent dark:to-slate-900/55 dark:backdrop-blur-md">
       <div class="flex items-stretch gap-1 max-w-5xl mx-auto">
-        <RouterLink
-          v-for="t in MAIN_TABS"
-          :key="t.to"
-          :to="t.to"
-          class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
-          active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
-        >{{ t.label }}</RouterLink>
+        <AppTabs router :tabs="MAIN_TABS" />
 
         <!-- Desktop: global tabs inline, set apart by a divider -->
-        <div class="hidden sm:flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+        <div class="hidden sm:flex items-stretch gap-3 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
           <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
-          <RouterLink
-            v-for="t in GLOBAL_TABS"
-            :key="t.to"
-            :to="t.to"
-            class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
-            active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
-          >{{ t.label }}</RouterLink>
+          <AppTabs router :tabs="GLOBAL_TABS" />
         </div>
 
         <!-- Desktop: plugin-contributed tabs, their own category (mirrors Global toggles) -->
-        <div v-if="PLUGIN_TABS.length" class="hidden sm:flex items-stretch gap-1 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
+        <div v-if="PLUGIN_TABS.length" class="hidden sm:flex items-stretch gap-3 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
           <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plugins</span>
-          <RouterLink
-            v-for="t in PLUGIN_TABS"
-            :key="t.to"
-            :to="t.to"
-            class="shrink-0 inline-flex items-center -mb-px px-3.5 py-2.5 border-b-2 border-transparent text-[13px] font-semibold whitespace-nowrap transition-colors text-slate-500 dark:text-white/55 hover:text-slate-800 dark:hover:text-white"
-            active-class="!border-indigo-500 !text-indigo-600 dark:!border-indigo-400 dark:!text-indigo-300"
-          >{{ t.label }}</RouterLink>
+          <AppTabs router :tabs="PLUGIN_TABS" />
         </div>
 
         <!-- Mobile: global toggles open from the chevron after Groups -->
