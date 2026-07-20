@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
 import AppTabs from '@core/AppTabs.vue'
 import { useAuth } from '@core/auth/useAuth.js'
+import { Icon } from '@core/icons'
 
 // Per-user config: a Details tab (name, role, PIN) plus per-user app/widget
 // enable/disable. Global overrides always win — a globally disabled item is off
@@ -205,7 +206,7 @@ async function toggle(it) {
           <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">{{ user?.name }} · per-user settings</p>
         </div>
         <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="emit('close')">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <Icon name="close" :sw="2.5" />
         </button>
       </div>
 
@@ -262,7 +263,7 @@ async function toggle(it) {
             <!-- Active one-time PIN — visible until the user picks their own -->
             <div v-if="pinTemporaryStatus && tempPin" class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mb-2">
               <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" /></svg>
+                <Icon name="clock" class="w-3.5 h-3.5" />
                 One-time PIN
               </p>
               <p class="font-mono text-2xl font-bold tracking-[0.35em] text-amber-800 dark:text-amber-200 mt-1 pl-1">{{ tempPin }}</p>
@@ -275,7 +276,7 @@ async function toggle(it) {
                 Awaiting first sign-in
               </span>
               <span v-else-if="pinSet" class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                <Icon name="lockSimple" class="w-3.5 h-3.5" />
                 PIN is set — only {{ user?.name }} knows it
               </span>
               <span v-else class="text-slate-400 dark:text-white/40">No PIN — this profile signs in without one.</span>
@@ -323,7 +324,7 @@ async function toggle(it) {
               <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ it.name }}</p>
               <p class="text-xs text-slate-500 dark:text-white/40 truncate">{{ it.description }}</p>
               <p v-if="it.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
-                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                <Icon name="link" class="w-3 h-3 shrink-0" />
                 Depends on {{ widgetName(it.dependsOn) }}
               </p>
             </div>

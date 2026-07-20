@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import ConfirmGlobalModal from '@/components/ConfirmGlobalModal.vue'
 import AppIcon from '@core/AppIcon.vue'
 import VersionBadge from '@core/VersionBadge.vue'
+import { Icon } from '@core/icons'
 
 const apps = ref([])
 const disabled = ref(new Set()) // globally-disabled ids
@@ -60,9 +61,7 @@ async function applyToggle() {
 
     <!-- Global-action notice -->
     <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-2.5">
-      <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-      </svg>
+      <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
       <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
         Enabling or disabling an app here is <strong>global</strong> — it hides or restores the app for every user.
       </p>
@@ -95,9 +94,7 @@ async function applyToggle() {
           v-if="a.locked"
           class="self-start inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-white/50 bg-slate-500/10 dark:bg-white/8"
         >
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" />
-          </svg>
+          <Icon name="lockSimple" class="w-3 h-3" />
           Required
         </span>
         <button

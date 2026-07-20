@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { formatVersion, channelLabel } from '@core/version.js'
+import DatabaseIcon from '@/assets/icons/database.svg?component'
 
 const stats = ref({ users: '–', apps: '–', widgets: '–' })
 // Nucleus platform version — the ground truth apps/widgets declare
@@ -49,12 +50,7 @@ const CARDS = [
           Manifest schema v{{ platform.manifestVersion }}
         </p>
       </div>
-      <svg class="w-10 h-10 shrink-0 text-indigo-500/70 dark:text-indigo-400/60" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="3" />
-        <ellipse cx="12" cy="12" rx="10" ry="4.5" />
-        <ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)" />
-      </svg>
+      <DatabaseIcon class="w-10 h-10 shrink-0 text-indigo-500/70 dark:text-indigo-400/60" />
     </div>
 
     <div class="grid grid-cols-3 gap-3">

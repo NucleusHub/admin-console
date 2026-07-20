@@ -1,4 +1,5 @@
 <script setup>
+import { Icon } from '@core/icons'
 // Warning modal for global (all-users) actions.
 defineProps({
   show: { type: Boolean, default: false },
@@ -22,9 +23,7 @@ defineEmits(['confirm', 'cancel'])
 
             <!-- Global-action notice -->
             <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 py-2.5">
-              <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
+              <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
               <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                 This is a <strong>global action</strong> — it applies to <strong>every user</strong>, not just you.
               </p>

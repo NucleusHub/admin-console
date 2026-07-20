@@ -5,6 +5,8 @@ import PinInput from '@core/auth/PinInput.vue'
 import UserConfigModal from '@/components/UserConfigModal.vue'
 import UserDeleteModal from '@/components/UserDeleteModal.vue'
 import TemplateModal from '@core/TemplateModal.vue'
+import { Icon } from '@core/icons'
+import RefreshIcon from '@/assets/icons/refresh.svg?component'
 
 const users = ref([])
 const groups = ref([])
@@ -192,9 +194,7 @@ function onUserDeleted(id) {
                 ? 'text-indigo-600 dark:text-indigo-300 bg-indigo-500/15'
                 : 'text-slate-500 dark:text-white/60 bg-slate-500/12 dark:bg-white/8')"
           >
-            <svg v-if="u.role === 'admin' && !u.isGuest" class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6l-9-4z" />
-            </svg>
+            <Icon name="shield" v-if="u.role === 'admin' && !u.isGuest" class="w-3 h-3" fill />
             {{ roleLabel(u) }}
           </span>
         </div>
@@ -202,15 +202,11 @@ function onUserDeleted(id) {
         <!-- pin -->
         <div class="hidden sm:flex sm:justify-center">
           <span v-if="u.hasPin && u.pinTemporary" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400" title="One-time PIN — user sets their own on next sign-in">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" />
-            </svg>
+            <Icon name="clock" class="w-3.5 h-3.5" />
             Temporary
           </span>
           <span v-else-if="u.hasPin" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-600 dark:text-emerald-400">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <rect x="5" y="11" width="14" height="10" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" />
-            </svg>
+            <Icon name="lockSimple" class="w-3.5 h-3.5" />
             Set
           </span>
           <span v-else class="text-[13px] text-slate-400 dark:text-white/35">None</span>
@@ -253,7 +249,7 @@ function onUserDeleted(id) {
         <div class="flex items-start justify-between mb-3">
           <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ groupsUser?.name }}'s groups</h2>
           <button class="p-1 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer" @click="groupsUser = null">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <Icon name="close" :sw="2.5" />
           </button>
         </div>
         <ul class="flex flex-wrap gap-1.5">
@@ -272,7 +268,7 @@ function onUserDeleted(id) {
         @click="newProfileModal = true"
         class="group cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-300/50 dark:border-indigo-400/20 transition-colors"
       >
-        <svg class="w-4 h-4 nuc-pop" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" /></svg>
+        <Icon name="plus" class="w-4 h-4 nuc-pop" :sw="2.5" />
         Create user
       </button>
     </div>
@@ -286,7 +282,7 @@ function onUserDeleted(id) {
             <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">A new profile for this Nucleus</p>
           </div>
           <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="newProfileModal = false">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <Icon name="close" :sw="2.5" />
           </button>
         </div>
 
@@ -320,7 +316,7 @@ function onUserDeleted(id) {
                 :class="newColor === null ? 'border-slate-900 dark:border-white' : 'border-transparent'"
                 @click="newColor = null"
               >
-                <svg class="w-3.5 h-3.5 text-slate-400 dark:text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 0 0-14.9-2M4 16a8 8 0 0 0 14.9 2" /></svg>
+                <RefreshIcon class="w-3.5 h-3.5 text-slate-400 dark:text-white/50" />
               </button>
               <button
                 v-for="c in AVATAR_COLORS"
@@ -356,7 +352,7 @@ function onUserDeleted(id) {
             <template v-else-if="pinMode === 'temporary'">
               <div class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mt-3">
                 <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" /></svg>
+                  <Icon name="clock" class="w-3.5 h-3.5" />
                   One-time PIN
                 </p>
                 <p class="font-mono text-2xl font-bold tracking-[0.35em] text-amber-800 dark:text-amber-200 mt-1 pl-1">{{ newPin }}</p>

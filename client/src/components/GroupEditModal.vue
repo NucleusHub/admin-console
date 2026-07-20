@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
 import AppTabs from '@core/AppTabs.vue'
 import AvatarCircle from '@core/auth/AvatarCircle.vue'
+import { Icon } from '@core/icons'
 
 // One modal for both creating and configuring a group.
 //  • Details tab: name, shared-storage switch (only when Orbit is installed), members.
@@ -156,7 +157,7 @@ async function toggleAccess(it) {
       <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
         <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ isEdit ? 'Configure group' : 'New group' }}</h2>
         <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="emit('close')">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <Icon name="close" :sw="2.5" />
         </button>
       </div>
 
@@ -255,7 +256,7 @@ async function toggleAccess(it) {
               <AvatarCircle :profile="u" :size="28" />
               <span class="text-sm font-medium text-slate-900 dark:text-white flex-1 truncate">{{ u.name }}</span>
               <span class="shrink-0 w-5 h-5 rounded-md border flex items-center justify-center transition-colors" :class="members.has(u._id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 dark:border-white/20'">
-                <svg v-if="members.has(u._id)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <Icon name="checkBold" v-if="members.has(u._id)" class="w-3 h-3 text-white" :sw="3" />
               </span>
             </li>
             <li v-if="!users.length" class="text-sm text-slate-400 dark:text-white/40 py-6 text-center">No users.</li>
@@ -277,7 +278,7 @@ async function toggleAccess(it) {
               <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ it.name }}</p>
               <p class="text-xs text-slate-500 dark:text-white/40 truncate">{{ it.description }}</p>
               <p v-if="it.dependsOn" class="text-[11px] text-slate-400 dark:text-white/35 truncate inline-flex items-center gap-1 mt-0.5">
-                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
+                <Icon name="link" class="w-3 h-3 shrink-0" />
                 Depends on {{ widgetName(it.dependsOn) }}
               </p>
             </div>

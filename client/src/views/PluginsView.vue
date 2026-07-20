@@ -5,6 +5,8 @@ import AppIcon from '@core/AppIcon.vue'
 import VersionBadge from '@core/VersionBadge.vue'
 import { usePlugins } from '@core/usePlugins.js'
 import { usePluginOverrides } from '@/pluginOverrides.js'
+import { Icon } from '@core/icons'
+import LightBulbIcon from '@/assets/icons/light-bulb.svg?component'
 
 const { plugins, apiVersion, nucleus, loading, error, load } = usePlugins()
 
@@ -88,9 +90,7 @@ const SCHEMA_FIELDS = [
 
     <!-- Global-action notice -->
     <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-2.5">
-      <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-      </svg>
+      <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
       <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
         Enabling or disabling a plugin here is <strong>global and admin-only</strong> — it affects every user (e.g. hiding
         the plugin's admin tabs). Users can't toggle plugins themselves.
@@ -106,9 +106,7 @@ const SCHEMA_FIELDS = [
       class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-slate-200/80 dark:border-white/10 p-8 flex flex-col items-center text-center gap-3"
     >
       <div class="w-14 h-14 rounded-2xl bg-indigo-500/12 flex items-center justify-center">
-        <svg class="w-7 h-7 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.4 48.4 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58v0z" />
-        </svg>
+        <LightBulbIcon class="w-7 h-7 text-indigo-500 dark:text-indigo-400" />
       </div>
       <h2 class="text-base font-bold text-slate-900 dark:text-white">No plugins yet</h2>
       <p class="text-sm text-slate-500 dark:text-white/50 max-w-md">
@@ -143,9 +141,7 @@ const SCHEMA_FIELDS = [
         <div class="flex items-start gap-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 flex items-center justify-center">
             <AppIcon v-if="p.iconSvg" :svg="p.iconSvg" class="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-            <svg v-else class="w-5 h-5 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.4 48.4 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58v0z" />
-            </svg>
+            <LightBulbIcon v-else class="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
@@ -198,7 +194,7 @@ const SCHEMA_FIELDS = [
         <!-- Validation errors -->
         <ul v-if="p.errors?.length" class="mt-0.5 space-y-1">
           <li v-for="(e, i) in p.errors" :key="i" class="text-[11px] text-red-600 dark:text-red-400 flex items-start gap-1.5">
-            <svg class="w-3 h-3 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+            <Icon name="infoDot" class="w-3 h-3 mt-0.5 shrink-0" :sw="2.2" />
             <span>{{ e }}</span>
           </li>
         </ul>

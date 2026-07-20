@@ -7,6 +7,8 @@ import AppTabs from '@core/AppTabs.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 import { pluginAdminTabs } from '@/plugins.js'
 import { usePluginOverrides } from '@/pluginOverrides.js'
+import { Icon } from '@core/icons'
+import ChevronDownIcon from '@/assets/icons/chevron-down.svg?component'
 
 const { profile } = useAuth()
 // AuthGuard only renders us once a session is loaded, so profile is set here.
@@ -68,9 +70,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   <div v-if="!isAdmin" class="min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-sm rounded-2xl bg-white/70 dark:bg-white/[0.05] backdrop-blur-md border border-white/70 dark:border-white/10 p-8 flex flex-col items-center text-center gap-3">
       <div class="w-12 h-12 rounded-2xl bg-red-500/15 flex items-center justify-center">
-        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z" />
-        </svg>
+        <Icon name="lock" class="w-6 h-6 text-red-500" :sw="1.75" />
       </div>
       <h1 class="text-lg font-bold text-slate-900 dark:text-white">Admins only</h1>
       <p class="text-sm text-slate-500 dark:text-white/50">You don't have permission to access the admin console.</p>
@@ -88,16 +88,12 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
           class="nuc-press cursor-pointer p-2 -ml-1 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/8 transition-colors"
           aria-label="Open navigation"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
+          <Icon name="menu" class="w-5 h-5" />
         </button>
       </template>
 
       <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6l-9-4z" />
-        </svg>
+        <Icon name="shield" class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill />
         <span class="text-sm font-semibold text-slate-800 dark:text-white">Admin Console</span>
       </div>
     </AppHeader>
@@ -133,9 +129,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
               : 'border-transparent text-slate-400 dark:text-white/45 hover:text-slate-700 dark:hover:text-white'"
             @click.stop="globalOpen = !globalOpen"
           >
-            <svg class="w-4 h-4 transition-transform duration-200" :class="globalOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
+            <ChevronDownIcon class="w-4 h-4 transition-transform duration-200" :class="globalOpen ? 'rotate-180' : ''" />
           </button>
 
           <Transition name="gt">
