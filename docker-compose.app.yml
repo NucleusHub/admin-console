@@ -9,6 +9,9 @@ services:
       nucleus.role: "app-client"
       nucleus.app: "admin"
     environment:
+      # Host edits over the Docker VM file share (virtiofs) emit no inotify
+      # events, so Vite would keep serving stale modules — poll instead.
+      CHOKIDAR_USEPOLLING: "true"
       # Vite dev server's allowedHosts reads this (see client/vite.config.js).
       NUCLEUS_HOST: ${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}
     volumes:

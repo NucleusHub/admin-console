@@ -249,7 +249,7 @@ function onUserDeleted(id) {
         <div class="flex items-start justify-between mb-3">
           <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ groupsUser?.name }}'s groups</h2>
           <button class="p-1 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer" @click="groupsUser = null">
-            <Icon name="close" :sw="2.5" />
+            <Icon width="16" height="16" name="close" :sw="2.5" />
           </button>
         </div>
         <ul class="flex flex-wrap gap-1.5">
@@ -282,7 +282,7 @@ function onUserDeleted(id) {
             <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">A new profile for this Nucleus</p>
           </div>
           <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="newProfileModal = false">
-            <Icon name="close" :sw="2.5" />
+            <Icon width="16" height="16" name="close" :sw="2.5" />
           </button>
         </div>
 

@@ -206,7 +206,7 @@ async function toggle(it) {
           <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">{{ user?.name }} · per-user settings</p>
         </div>
         <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="emit('close')">
-          <Icon name="close" :sw="2.5" />
+          <Icon width="16" height="16" name="close" :sw="2.5" />
         </button>
       </div>
 

@@ -157,7 +157,7 @@ async function toggleAccess(it) {
       <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
         <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ isEdit ? 'Configure group' : 'New group' }}</h2>
         <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="emit('close')">
-          <Icon name="close" :sw="2.5" />
+          <Icon width="16" height="16" name="close" :sw="2.5" />
         </button>
       </div>
 
