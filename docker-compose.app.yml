@@ -9,10 +9,8 @@ services:
       nucleus.role: "app-client"
       nucleus.app: "admin"
     environment:
-      # Host edits over the Docker VM file share (virtiofs) emit no inotify
-      # events, so Vite would keep serving stale modules — poll instead.
+      # virtiofs emits no inotify events, so Vite must poll.
       CHOKIDAR_USEPOLLING: "true"
-      # Vite dev server's allowedHosts reads this (see client/vite.config.js).
       NUCLEUS_HOST: ${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}
     volumes:
       - ./client/src:/app/src
@@ -20,6 +18,4 @@ services:
       - ./client/vite.config.js:/app/vite.config.js
       - ../../core:/app/core:ro
       - ../../plugins:/app/plugins:ro
-      # Widget package, so core/AuthGuard's @widgets-core import resolves (Pulse
-      # widgets can float in this app). Mirrors the hub. Read-only.
       - ../../widgets:/app/widgets:ro

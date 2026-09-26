@@ -6,7 +6,7 @@ import VersionBadge from '@core/VersionBadge.vue'
 import { Icon } from '@core/icons'
 
 const apps = ref([])
-const disabled = ref(new Set()) // globally-disabled ids
+const disabled = ref(new Set())
 const loading = ref(true)
 const error = ref(null)
 const pending = ref(null)
@@ -59,7 +59,6 @@ async function applyToggle() {
     <h1 class="text-[22px] font-bold text-slate-900 dark:text-white">Apps</h1>
     <p class="text-[13px] text-slate-500 dark:text-white/45 mt-0.5 mb-3">Installed applications</p>
 
-    <!-- Global-action notice -->
     <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-2.5">
       <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
       <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
@@ -76,7 +75,6 @@ async function applyToggle() {
         :key="a.id"
         class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] p-4 flex flex-col gap-3"
       >
-        <!-- Content dims when disabled; the Enable/Required action stays vivid -->
         <div class="flex items-start gap-3" :class="{ 'opacity-55': isOff(a.id) }">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 flex items-center justify-center">
             <AppIcon :svg="a.iconSvg" class="w-5 h-5 text-indigo-500 dark:text-indigo-400" />

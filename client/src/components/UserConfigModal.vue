@@ -5,9 +5,6 @@ import AppTabs from '@core/AppTabs.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 import { Icon } from '@core/icons'
 
-// Per-user config: a Details tab (name, role, PIN) plus per-user app/widget
-// enable/disable. Global overrides always win — a globally disabled item is off
-// here regardless and can't be toggled per-user.
 const props = defineProps({
   user: { type: Object, default: null },
 })
@@ -17,14 +14,12 @@ const { profile: currentProfile } = useAuth()
 
 const tab = ref('details')
 
-// ── Details (name / role / PIN) ───────────────────────────────────────────────
 const name = ref('')
 const role = ref('user')
-const locale = ref('')                  // '' = fall back to the instance default
+const locale = ref('')
 const installedLanguages = ref(['en-US'])
 const pinSet = ref(false)
 
-// Language options come from the localization config (admin-installed languages).
 onMounted(async () => {
   try {
     const res = await fetch('/api/auth/i18n/config', { credentials: 'include' })
@@ -32,24 +27,22 @@ onMounted(async () => {
   } catch {}
 })
 
-// Friendly display name for a BCP-47 tag, falling back to the raw tag.
 const langLabel = (tag) => {
   try { return new Intl.DisplayNames([tag], { type: 'language' }).of(tag.split('-')[0]) || tag }
   catch { return tag }
 }
-const pinTemporaryStatus = ref(false)   // current PIN is a one-time PIN
-const tempPin = ref(null)               // plaintext one-time PIN to relay, while active
+const pinTemporaryStatus = ref(false)
+const tempPin = ref(null)
 const resettingPin = ref(false)
 const savingDetails = ref(false)
 const detailsError = ref(null)
 const pinError = ref(null)
 
-const savedRole = ref('user')   // role as persisted on the server (toggle is `role`)
+const savedRole = ref('user')
 
 const isGuest = computed(() => !!props.user?.isGuest)
 const isSelf = computed(() =>
   !!currentProfile.value && !!props.user && String(currentProfile.value._id) === String(props.user._id))
-// Admins can't be deleted until demoted; neither can your own account.
 const canDelete = computed(() => !isGuest.value && !isSelf.value && savedRole.value !== 'admin')
 
 watch(() => props.user, (u) => {
@@ -68,8 +61,6 @@ watch(() => props.user, (u) => {
   loadTempPin(u._id)
 }, { immediate: true })
 
-// Pull the active one-time PIN (if any) so it stays visible until the user
-// replaces it. Admin-only endpoint; guests never have one.
 async function loadTempPin(id) {
   if (isGuest.value) return
   try {
@@ -104,8 +95,6 @@ async function saveDetails() {
   }
 }
 
-// Issue a fresh one-time PIN. The server generates it; we surface the plaintext
-// so the admin can pass it on. The user is forced to set their own on next login.
 async function resetPin() {
   resettingPin.value = true
   pinError.value = null
@@ -127,7 +116,6 @@ async function resetPin() {
   }
 }
 
-// ── Apps / widgets ─────────────────────────────────────────────────────────────
 const apps = ref([])
 const widgets = ref([])
 const globalApps = ref(new Set())
@@ -169,8 +157,6 @@ const userSet = computed(() => (tab.value === 'apps' ? userApps.value : userWidg
 const isLocked = (it) => !!it.locked
 const globallyOff = (it) => globalSet.value.has(it.id)
 const userOff = (it) => userSet.value.has(it.id)
-// Cascade: a widget whose data provider is disabled (globally or for this user)
-// is effectively off too.
 const widgetName = (id) => widgets.value.find(w => w.id === id)?.name || id
 const providerOff = (it) => it.dependsOn && (globalSet.value.has(it.dependsOn) || userSet.value.has(it.dependsOn))
 
@@ -191,7 +177,7 @@ async function toggle(it) {
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
   } catch {
-    load(props.user._id) // revert to server truth on failure
+    load(props.user._id)
   }
 }
 </script>
@@ -199,7 +185,6 @@ async function toggle(it) {
 <template>
   <TemplateModal :show="!!user" size="md" @cancel="emit('close')">
     <div class="flex flex-col" style="max-height: 82vh">
-      <!-- Header -->
       <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
         <div>
           <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Config</h2>
@@ -210,14 +195,12 @@ async function toggle(it) {
         </button>
       </div>
 
-      <!-- Tabs -->
       <AppTabs
         v-model="tab"
         :tabs="[{ key: 'details', label: 'Details' }, { key: 'apps', label: 'Apps' }, { key: 'widgets', label: 'Widgets' }]"
         class="px-5 border-b border-slate-200/60 dark:border-white/10"
       />
 
-      <!-- DETAILS -->
       <div v-show="tab === 'details'" class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-4">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Name</label>
@@ -257,10 +240,8 @@ async function toggle(it) {
 
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">PIN</label>
-          <!-- Guests never have a PIN -->
           <div v-if="isGuest" class="text-sm text-slate-400 dark:text-white/35">Guest profiles can't have a PIN.</div>
           <div v-else>
-            <!-- Active one-time PIN — visible until the user picks their own -->
             <div v-if="pinTemporaryStatus && tempPin" class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mb-2">
               <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
                 <Icon name="clock" class="w-3.5 h-3.5" />
@@ -270,7 +251,6 @@ async function toggle(it) {
               <p class="text-[11px] text-amber-700/80 dark:text-amber-300/70 mt-1">Share with {{ user?.name }}. They'll set their own PIN on next sign-in, then this clears.</p>
             </div>
 
-            <!-- Status line -->
             <div class="mb-2 text-[12px]">
               <span v-if="pinTemporaryStatus" class="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
                 Awaiting first sign-in
@@ -294,7 +274,6 @@ async function toggle(it) {
           <p v-if="pinError" class="text-[11px] text-red-500 mt-1">{{ pinError }}</p>
         </div>
 
-        <!-- Danger zone -->
         <div v-if="!isGuest" class="pt-2 border-t border-slate-200/60 dark:border-white/10">
           <label class="block text-[11px] font-bold uppercase tracking-wider text-red-500/70 mb-1.5">Danger zone</label>
           <template v-if="canDelete">
@@ -309,7 +288,6 @@ async function toggle(it) {
         </div>
       </div>
 
-      <!-- APPS / WIDGETS -->
       <div v-show="tab === 'apps' || tab === 'widgets'" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
         <p v-if="loading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
         <p v-else-if="error" class="text-sm text-red-500 py-8 text-center">{{ error }}</p>
@@ -343,7 +321,6 @@ async function toggle(it) {
         </ul>
       </div>
 
-      <!-- Footer -->
       <div v-show="tab === 'details'" class="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-200/60 dark:border-white/10">
         <p class="text-[11px] text-red-500 truncate">{{ detailsError }}</p>
         <div class="flex gap-2 shrink-0">

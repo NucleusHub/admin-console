@@ -17,10 +17,7 @@ export default defineConfig(({ mode }) => ({
   css: {
     transformer: 'lightningcss',
     lightningcss: {
-      // Concrete versions so Lightning CSS actually vendor-prefixes (e.g. adds
-      // -webkit-backdrop-filter for Safari while keeping the standard property
-      // for Firefox/Chrome). Open-ended "safari >= 15" ranges resolve to an
-      // empty target set, which silently disables prefixing.
+      // Concrete versions: open-ended ranges resolve to no targets and disable prefixing.
       targets: {
         safari: (15 << 16) | (4 << 8),
         ios_saf: (15 << 16) | (4 << 8),
@@ -36,8 +33,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@core': fileURLToPath(new URL('./core', import.meta.url)),
-      // Shared widget package (via the ./widgets symlink → repo /widgets), so
-      // this app can render Pulse widgets that opt in to showing here.
       '@widgets-core': fileURLToPath(new URL('./widgets/core', import.meta.url)),
     },
   },
@@ -45,8 +40,6 @@ export default defineConfig(({ mode }) => ({
     host: '0.0.0.0',
     port: 5178,
     proxy: {
-      // Pulse state, so widgets that opt in to showing here can load in dev.
-      // (Prod nginx routes /api/pulse centrally; this is dev-only.)
       '/api/pulse': {
         target: process.env.PULSE_TARGET || 'http://localhost:3004',
         changeOrigin: true,

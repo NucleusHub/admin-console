@@ -2,9 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AdminLayout from '@/views/AdminLayout.vue'
 import { pluginAdminTabs } from '@/plugins.js'
 
-// Routes contributed by plugins (extensions.adminTabs). The path/label/component
-// all come from each plugin's own manifest — nothing here is hardcoded per-plugin.
-// Routes always exist; AdminLayout hides the nav entry for a disabled plugin.
 const pluginRoutes = pluginAdminTabs.map(t => ({ path: t.path, component: t.loader }))
 
 export default createRouter({
@@ -21,8 +18,6 @@ export default createRouter({
         { path: 'apps',     component: () => import('@/views/AppsView.vue') },
         { path: 'widgets',  component: () => import('@/views/WidgetsView.vue') },
         { path: 'plugins',  component: () => import('@/views/PluginsView.vue') },
-        // Localization is now a plugin (plugins/localization); its route + nav tab
-        // come from pluginRoutes/pluginAdminTabs like any other plugin.
         ...pluginRoutes,
       ],
     },

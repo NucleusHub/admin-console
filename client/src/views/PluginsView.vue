@@ -10,8 +10,6 @@ import LightBulbIcon from '@/assets/icons/light-bulb.svg?component'
 
 const { plugins, apiVersion, nucleus, loading, error, load } = usePlugins()
 
-// Shared global-disabled set (also read by AdminLayout's nav), so toggling here
-// removes/adds the plugin's admin tab instantly.
 const { disabled, load: loadOverrides, setDisabled } = usePluginOverrides()
 const pending = ref(null)
 onMounted(() => { load(); loadOverrides() })
@@ -39,7 +37,6 @@ async function applyToggle() {
   }
 }
 
-// Visual treatment per discovery state (manifest validity / API compatibility).
 const STATE_META = {
   discovered:   { label: 'Discovered',   cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
   incompatible: { label: 'Incompatible', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -47,7 +44,6 @@ const STATE_META = {
 }
 const stateMeta = (s) => STATE_META[s] ?? { label: s || 'Unknown', cls: 'bg-slate-500/15 text-slate-500 dark:text-white/50' }
 
-// Flatten declared dependencies to a printable list of "id range" chips.
 function depChips(deps) {
   const out = []
   for (const kind of ['apps', 'plugins']) {
@@ -58,8 +54,6 @@ function depChips(deps) {
   return out
 }
 
-// The manifest fields the registry reads — shown in the empty state so it is
-// obvious what to author. Mirrors infra/plugin-runtime/manifest.js.
 const SCHEMA_FIELDS = [
   { key: 'id',           req: true,  note: 'kebab-case slug' },
   { key: 'name',         req: true,  note: '' },
@@ -88,7 +82,6 @@ const SCHEMA_FIELDS = [
       >Plugin API v{{ apiVersion }}</span>
     </div>
 
-    <!-- Global-action notice -->
     <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-2.5">
       <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
       <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
@@ -100,7 +93,6 @@ const SCHEMA_FIELDS = [
     <p v-if="loading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
     <p v-else-if="error" class="text-sm text-red-500 py-8 text-center">{{ error }}</p>
 
-    <!-- Empty state + schema reference -->
     <div
       v-else-if="count === 0"
       class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-slate-200/80 dark:border-white/10 p-8 flex flex-col items-center text-center gap-3"
@@ -129,14 +121,12 @@ const SCHEMA_FIELDS = [
       </div>
     </div>
 
-    <!-- Discovered plugins -->
     <div v-else class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))">
       <div
         v-for="p in plugins"
         :key="p.id"
         class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] p-4 flex flex-col gap-3"
       >
-        <!-- Content dims when disabled; the action button below stays vivid -->
         <div class="flex flex-col gap-3" :class="{ 'opacity-55': isOff(p.id) }">
         <div class="flex items-start gap-3">
           <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/15 flex items-center justify-center">
@@ -158,7 +148,6 @@ const SCHEMA_FIELDS = [
           </div>
         </div>
 
-        <!-- Targets -->
         <div v-if="p.target?.length" class="flex items-center gap-1.5 flex-wrap">
           <span v-if="p.crossApp" class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-purple-500/12 text-purple-600 dark:text-purple-400">cross-app</span>
           <span
@@ -168,7 +157,6 @@ const SCHEMA_FIELDS = [
           >{{ t }}</span>
         </div>
 
-        <!-- Declared dependencies -->
         <div v-if="depChips(p.dependencies).length" class="flex items-start gap-1.5 flex-wrap">
           <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-white/30 mt-0.5">Deps</span>
           <span
@@ -179,7 +167,6 @@ const SCHEMA_FIELDS = [
           >{{ d.id }}&nbsp;{{ d.range }}</span>
         </div>
 
-        <!-- Permissions -->
         <div v-if="p.permissions?.length" class="flex items-start gap-1.5 flex-wrap">
           <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-white/30 mt-0.5">Perms</span>
           <span
@@ -191,7 +178,6 @@ const SCHEMA_FIELDS = [
 
         <p v-if="p.author" class="text-[11px] text-slate-400 dark:text-white/35">by {{ p.author }}</p>
 
-        <!-- Validation errors -->
         <ul v-if="p.errors?.length" class="mt-0.5 space-y-1">
           <li v-for="(e, i) in p.errors" :key="i" class="text-[11px] text-red-600 dark:text-red-400 flex items-start gap-1.5">
             <Icon name="infoDot" class="w-3 h-3 mt-0.5 shrink-0" :sw="2.2" />
@@ -201,7 +187,6 @@ const SCHEMA_FIELDS = [
 
         </div>
 
-        <!-- Global enable/disable (admin-only; affects every user) -->
         <button
           class="mt-auto self-start px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
           :class="isOff(p.id)

@@ -1,6 +1,5 @@
 <script setup>
 import { Icon } from '@core/icons'
-// Warning modal for global (all-users) actions.
 defineProps({
   show: { type: Boolean, default: false },
   title: { type: String, default: '' },
@@ -21,7 +20,6 @@ defineEmits(['confirm', 'cancel'])
             <h2 class="text-base font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
             <p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400">{{ message }}</p>
 
-            <!-- Global-action notice -->
             <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 py-2.5">
               <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
               <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">

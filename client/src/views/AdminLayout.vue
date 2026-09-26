@@ -11,14 +11,10 @@ import { Icon } from '@core/icons'
 import ChevronDownIcon from '@/assets/icons/chevron-down.svg?component'
 
 const { profile } = useAuth()
-// AuthGuard only renders us once a session is loaded, so profile is set here.
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const sidebarOpen = ref(false)
 
-// Per-profile management tabs vs. global (everyone) settings. The per-profile
-// tabs sit inline; the global toggles live behind a chevron dropdown after them,
-// so the bar stays single-row on phones (no horizontal scroll).
 const MAIN_TABS = [
   { to: '/overview', label: 'Overview' },
   { to: '/users',    label: 'Users' },
@@ -28,15 +24,8 @@ const GLOBAL_TABS = [
   { to: '/apps',     label: 'Apps' },
   { to: '/widgets',  label: 'Widgets' },
   { to: '/plugins',  label: 'Plugins' },
-  // Localization moved to a plugin (plugins/localization) — its tab now comes
-  // from PLUGIN_TABS below, so it hides when the plugin is disabled/uninstalled.
 ]
 
-// ── Plugin-contributed tabs ───────────────────────────────────────────────────
-// Tabs declared by plugins (extensions.adminTabs), shown in their own "Plugins"
-// category. A globally-disabled plugin's tabs are hidden. Nothing here is
-// hardcoded per-plugin — the metadata comes from each plugin's manifest.
-// Shared with the Plugins page, so a toggle there updates these tabs instantly.
 const { disabled: disabledPlugins, load: loadDisabledPlugins } = usePluginOverrides()
 const PLUGIN_TABS = computed(() =>
   pluginAdminTabs
@@ -44,16 +33,13 @@ const PLUGIN_TABS = computed(() =>
     .map(t => ({ to: '/' + t.path, label: t.label })),
 )
 
-// ── Global-toggles dropdown ───────────────────────────────────────────────────
 const route = useRoute()
 const globalOpen = ref(false)
 const globalMenu = ref(null)
-// Highlight the chevron while a global OR plugin tab is the active route.
 const globalActive = computed(() =>
   [...GLOBAL_TABS, ...PLUGIN_TABS.value].some(t => route.path.startsWith(t.to)),
 )
 
-// Close on outside click and whenever the route changes.
 function onDocClick(e) {
   if (globalOpen.value && globalMenu.value && !globalMenu.value.contains(e.target)) globalOpen.value = false
 }
@@ -66,7 +52,6 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <template>
-  <!-- Non-admins are blocked entirely. -->
   <div v-if="!isAdmin" class="min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-sm rounded-2xl bg-white/70 dark:bg-white/[0.05] backdrop-blur-md border border-white/70 dark:border-white/10 p-8 flex flex-col items-center text-center gap-3">
       <div class="w-12 h-12 rounded-2xl bg-red-500/15 flex items-center justify-center">
@@ -98,26 +83,20 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
       </div>
     </AppHeader>
 
-    <!-- Tabs — client-side navigation, no page reload. Per-profile tabs sit inline;
-         the global toggles open from a chevron after Groups, so the bar stays a
-         single non-scrolling row on phones. -->
     <nav class="sticky top-16 z-20 px-4 pt-4 border-b border-slate-200/70 dark:border-white/10 bg-gradient-to-b from-transparent to-transparent dark:to-slate-900/55 dark:backdrop-blur-md">
       <div class="flex items-stretch gap-1 max-w-5xl mx-auto">
         <AppTabs router :tabs="MAIN_TABS" />
 
-        <!-- Desktop: global tabs inline, set apart by a divider -->
         <div class="hidden sm:flex items-stretch gap-3 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
           <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Global toggles</span>
           <AppTabs router :tabs="GLOBAL_TABS" />
         </div>
 
-        <!-- Desktop: plugin-contributed tabs, their own category (mirrors Global toggles) -->
         <div v-if="PLUGIN_TABS.length" class="hidden sm:flex items-stretch gap-3 ml-3 pl-3 border-l border-slate-200/70 dark:border-white/10">
           <span class="self-center shrink-0 whitespace-nowrap pr-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/30">Plugins</span>
           <AppTabs router :tabs="PLUGIN_TABS" />
         </div>
 
-        <!-- Mobile: global toggles open from the chevron after Groups -->
         <div ref="globalMenu" class="relative flex items-stretch sm:hidden">
           <button
             type="button"
@@ -179,7 +158,6 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .gt-enter-active, .gt-leave-active { transition: opacity 0.13s ease, transform 0.13s ease; }
 .gt-enter-from, .gt-leave-to { opacity: 0; transform: translateY(-4px); }
 
-/* Cross-fade between admin sections. */
 .page-enter-active { transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
 .page-leave-active { transition: opacity 0.12s ease; }
 .page-enter-from { opacity: 0; transform: translateY(8px); }
@@ -190,4 +168,3 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   .page-enter-from { transform: none; }
 }
 </style>
-

@@ -1,19 +1,4 @@
-// Discovers admin-tab contributions from installed plugins.
-//
-// Each plugin declares its own admin tab(s) in its manifest under
-// `extensions.adminTabs` (see plugins/<id>/nucleus.plugin.json). Admin does not
-// hardcode any plugin's tab — it reads the declaration and mounts the component
-// the plugin ships. This is the client half of the plugin `adminTabs` extension
-// point; the plugin-runtime registry exposes the same metadata server-side.
-
-// Eagerly load every plugin manifest; lazily map every plugin .vue component.
-// This file lives in src/, so `../plugins` is the client-dir plugins entry
-// (symlink → repo /plugins, mounted at /app/plugins in the container), mirroring
-// how `core` is wired.
 const manifests = import.meta.glob('../plugins/*/nucleus.plugin.json', { eager: true, import: 'default' })
-// Only admin-tab components (convention: a plugin ships them under client/admin/).
-// Globbing all plugin .vue would also pull in statically-imported components like
-// the banners/modals, which Rollup warns can't be split into their own chunk.
 const components = import.meta.glob('../plugins/*/client/admin/**/*.vue')
 
 function build() {
@@ -39,6 +24,4 @@ function build() {
   return tabs
 }
 
-// The plugin-contributed admin tabs available at build time. Filtering by the
-// enabled/disabled state (a runtime concern) happens in AdminLayout.
 export const pluginAdminTabs = build()

@@ -6,10 +6,6 @@ import AvatarCircle from '@core/auth/AvatarCircle.vue'
 import { useAuth } from '@core/auth/useAuth.js'
 import { Icon } from '@core/icons'
 
-// Permanently deletes a user and ALL of their data across every app. The acting
-// admin must re-enter their own PIN. Flow: confirm the PIN first (no mutation),
-// then tear down each app's data, then drop the profile itself — so the
-// irreversible teardown never runs on a wrong PIN.
 const props = defineProps({
   user: { type: Object, default: null },
 })
@@ -19,10 +15,9 @@ const { profile: admin } = useAuth()
 
 const pin = ref('')
 const busy = ref(false)
-const step = ref('')        // progress label shown while working
+const step = ref('')
 const error = ref(null)
 
-// Only require a PIN when the acting admin actually has one set.
 const needsPin = computed(() => !!admin.value?.hasPin)
 const canConfirm = computed(() => !needsPin.value || pin.value.length === 4)
 
@@ -33,15 +28,12 @@ watch(() => props.user, () => {
   error.value = null
 }, { immediate: true })
 
-// Best-effort per-app teardown. An app that isn't installed/reachable (network
-// error or 404) is skipped; a real error (any other non-OK status) aborts before
-// the profile is deleted, so data is never silently orphaned.
 async function teardown(label, url) {
   let res
   try {
     res = await fetch(url, { method: 'POST', credentials: 'include' })
   } catch {
-    return // unreachable → treat as not installed
+    return
   }
   if (res.ok || res.status === 404) return
   throw new Error(`${label} cleanup failed (HTTP ${res.status})`)
@@ -55,15 +47,11 @@ async function confirm() {
   const body = JSON.stringify({ pin: needsPin.value ? pin.value.toUpperCase() : undefined })
   const opts = { headers: { 'Content-Type': 'application/json' }, credentials: 'include' }
   try {
-    // 1. Verify the admin's PIN up front — nothing is deleted yet.
+    // Verify the PIN before any irreversible teardown.
     step.value = 'Verifying PIN…'
     const check = await fetch(`/api/auth/profiles/${id}/confirm-delete`, { method: 'POST', body, ...opts })
     if (!check.ok) throw new Error((await check.json()).error || `HTTP ${check.status}`)
 
-    // 2. Tear down the user's data in every installed app. We gate on the
-    // registry (fetched fresh here) so we only hit apps that are actually
-    // present — an uninstalled app has no route and its teardown would 404. The
-    // best-effort fallback in teardown() still covers apps mid-uninstall.
     step.value = 'Deleting files & data…'
     const installed = new Set(
       await fetch('/api/registry/apps')
@@ -82,7 +70,6 @@ async function confirm() {
       if (installed.has(app.id)) await teardown(app.label, app.url)
     }
 
-    // 3. Drop group membership, overrides and the profile itself.
     step.value = 'Removing profile…'
     const del = await fetch(`/api/auth/profiles/${id}`, { method: 'DELETE', body, ...opts })
     if (!del.ok) throw new Error((await del.json()).error || `HTTP ${del.status}`)
@@ -109,7 +96,6 @@ async function confirm() {
         </div>
       </div>
 
-      <!-- Hard warning -->
       <div class="flex items-start gap-2.5 rounded-xl bg-red-500/10 border border-red-500/30 px-3.5 py-2.5">
         <Icon name="warningTriangle" class="w-4 h-4 mt-0.5 shrink-0 text-red-500" />
         <p class="text-xs font-medium text-red-700 dark:text-red-300 leading-relaxed">
@@ -118,7 +104,6 @@ async function confirm() {
         </p>
       </div>
 
-      <!-- PIN confirmation -->
       <div v-if="needsPin" class="flex flex-col gap-2">
         <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35">
           Confirm with your PIN

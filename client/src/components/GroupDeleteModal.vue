@@ -3,23 +3,19 @@ import { ref, watch, computed } from 'vue'
 import TemplateModal from '@core/TemplateModal.vue'
 import { Icon } from '@core/icons'
 
-// Deleting a group needs a decision about its shared Orbit directory: wipe it,
-// or hand its files to one user. We run Orbit's teardown first, then delete the
-// group itself in auth.
 const props = defineProps({
   group: { type: Object, default: null },
-  users: { type: Array, default: () => [] }, // for the transfer target
+  users: { type: Array, default: () => [] },
   orbitInstalled: { type: Boolean, default: false },
   prismInstalled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close', 'deleted'])
 
-const mode = ref('delete') // 'delete' | 'transfer'
+const mode = ref('delete')
 const targetId = ref('')
 const busy = ref(false)
 const error = ref(null)
 
-// The shared-files decision only matters when Orbit is around to hold them.
 const hasSharedFiles = computed(() => props.orbitInstalled)
 
 watch(() => props.group, () => {
@@ -35,8 +31,6 @@ async function confirm() {
   busy.value = true
   error.value = null
   try {
-    // 1. Tear down the shared Orbit directory (skipped entirely if Orbit isn't
-    //    installed — there can be no shared files to handle).
     if (hasSharedFiles.value) {
       const body = mode.value === 'transfer'
         ? { action: 'transfer', targetProfileId: targetId.value }
@@ -50,14 +44,12 @@ async function confirm() {
       if (!teardown.ok && teardown.status !== 404) throw new Error(`Orbit teardown failed (HTTP ${teardown.status})`)
     }
 
-    // 1b. Drop Prism's shared albums / index rows for the group (best-effort).
     if (props.prismInstalled) {
       await fetch(`/api/prism/groups/${props.group._id}/teardown`, {
         method: 'POST', credentials: 'include',
       }).catch(() => {})
     }
 
-    // 2. Delete the group (and its override rows).
     const del = await fetch(`/api/auth/groups/${props.group._id}`, { method: 'DELETE', credentials: 'include' })
     if (!del.ok) throw new Error(`HTTP ${del.status}`)
     emit('deleted', props.group._id)
@@ -80,7 +72,6 @@ async function confirm() {
         </p>
       </div>
 
-      <!-- Distinct callout for the shared-storage decision -->
       <div v-if="hasSharedFiles" class="flex items-start gap-2.5 rounded-xl bg-violet-500/10 border border-violet-500/30 px-3.5 py-2.5">
         <Icon name="users" class="w-4 h-4 mt-0.5 shrink-0 text-violet-500" fill />
         <p class="text-xs font-medium text-violet-700 dark:text-violet-300 leading-relaxed">
@@ -89,7 +80,6 @@ async function confirm() {
       </div>
 
       <div v-if="hasSharedFiles" class="flex flex-col gap-2">
-        <!-- Delete option -->
         <button
           class="text-left rounded-xl border px-3.5 py-3 transition-colors cursor-pointer"
           :class="mode === 'delete'
@@ -101,7 +91,6 @@ async function confirm() {
           <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">The shared directory and everything in it is removed from storage. Cannot be undone.</p>
         </button>
 
-        <!-- Transfer option -->
         <button
           class="text-left rounded-xl border px-3.5 py-3 transition-colors cursor-pointer"
           :class="mode === 'transfer'

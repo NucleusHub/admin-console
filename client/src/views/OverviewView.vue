@@ -4,8 +4,6 @@ import { formatVersion, channelLabel } from '@core/version.js'
 import DatabaseIcon from '@/assets/icons/database.svg?component'
 
 const stats = ref({ users: '–', apps: '–', widgets: '–' })
-// Nucleus platform version — the ground truth apps/widgets declare
-// compatibility against. Served by the registry from the root nucleus.json.
 const platform = ref({ version: null, manifestVersion: null })
 
 async function load() {
@@ -33,7 +31,6 @@ const CARDS = [
     <h1 class="text-[22px] font-bold text-slate-900 dark:text-white">Overview</h1>
     <p class="text-[13px] text-slate-500 dark:text-white/45 mt-0.5 mb-4">Your Nucleus at a glance</p>
 
-    <!-- Platform version hero -->
     <div class="mb-3 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/15 dark:to-purple-500/10 border border-indigo-200/80 dark:border-indigo-400/20 p-4 sm:p-5 flex items-center justify-between gap-4">
       <div class="min-w-0">
         <p class="text-[13px] font-medium text-slate-500 dark:text-white/50">Nucleus</p>

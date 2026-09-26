@@ -5,10 +5,10 @@ import VersionBadge from '@core/VersionBadge.vue'
 import { Icon } from '@core/icons'
 
 const widgets = ref([])
-const disabled = ref(new Set()) // globally-disabled ids
+const disabled = ref(new Set())
 const loading = ref(true)
 const error = ref(null)
-const pending = ref(null) // widget awaiting confirm
+const pending = ref(null)
 
 async function load() {
   loading.value = true
@@ -30,7 +30,6 @@ async function load() {
 onMounted(load)
 
 const isOff = (id) => disabled.value.has(id)
-// A widget whose data provider is globally disabled is off too (cascade).
 const providerOff = (w) => w.dependsOn && disabled.value.has(w.dependsOn)
 const widgetById = computed(() => new Map(widgets.value.map(w => [w.id, w])))
 const providerName = (w) => widgetById.value.get(w.dependsOn)?.name || w.dependsOn
@@ -62,7 +61,6 @@ async function applyToggle() {
     <h1 class="text-[22px] font-bold text-slate-900 dark:text-white">Widgets</h1>
     <p class="text-[13px] text-slate-500 dark:text-white/45 mt-0.5 mb-3">Dashboard widgets</p>
 
-    <!-- Global-action notice -->
     <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-2.5">
       <Icon name="warning" class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" />
       <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
@@ -88,16 +86,13 @@ async function applyToggle() {
           </p>
         </div>
 
-        <!-- Meta + action: wraps below the name on narrow screens -->
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-          <!-- Badges dim with the row; the action button below stays vivid -->
           <div class="flex items-center gap-2" :class="{ 'opacity-55': isOff(w.id) || providerOff(w) }">
             <VersionBadge v-if="w.version" :version="w.version" class="shrink-0" />
             <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-200/90 dark:bg-white/8 text-slate-600 dark:text-white/55 shrink-0">{{ w.slot }}</span>
             <span v-if="!w.locked && (isOff(w.id) || providerOff(w))" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">Disabled</span>
           </div>
 
-          <!-- Core/required widgets can't be disabled -->
           <span
             v-if="w.locked"
             class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-white/50 bg-slate-500/10 dark:bg-white/8"
@@ -105,7 +100,6 @@ async function applyToggle() {
             <Icon name="lockSimple" class="w-3 h-3" />
             {{ w.slot === 'system' ? 'Core' : 'Required' }}
           </span>
-          <!-- Off because its data provider is disabled -->
           <span
             v-else-if="providerOff(w)"
             class="shrink-0 text-[11px] font-medium text-slate-400 dark:text-white/40"

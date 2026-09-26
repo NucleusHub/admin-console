@@ -8,14 +8,14 @@ import UserGroupIcon from '@/assets/icons/user-group.svg?component'
 import TrashIcon from '@/assets/icons/trash.svg?component'
 
 const groups = ref([])
-const users = ref([])           // non-guest profiles
+const users = ref([])
 const orbitInstalled = ref(false)
 const prismInstalled = ref(false)
 const loading = ref(true)
 const error = ref(null)
 
 const editing = ref(false)
-const editTarget = ref(null)    // group being configured, or null for create
+const editTarget = ref(null)
 const deleteGroup = ref(null)
 
 const usersById = computed(() => {
@@ -83,14 +83,12 @@ function onDeleted(id) {
     <p v-if="loading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
     <p v-else-if="error" class="text-sm text-red-500 py-4">{{ error }}</p>
 
-    <!-- Empty state -->
     <div v-if="!loading && !groups.length" class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] py-14 flex flex-col items-center gap-3 text-center">
       <UserGroupIcon class="w-10 h-10 text-slate-300 dark:text-white/20" />
       <p class="text-sm font-medium text-slate-500 dark:text-white/50">No groups yet</p>
       <button class="text-xs font-semibold text-indigo-600 dark:text-indigo-300 cursor-pointer" @click="openCreate">Create your first group</button>
     </div>
 
-    <!-- Group cards -->
     <div v-else class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
       <div
         v-for="g in groups"
@@ -116,7 +114,6 @@ function onDeleted(id) {
           </button>
         </div>
 
-        <!-- Members preview -->
         <div class="flex items-center gap-2">
           <div class="flex -space-x-2">
             <AvatarCircle

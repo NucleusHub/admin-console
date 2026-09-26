@@ -5,13 +5,10 @@ import AppTabs from '@core/AppTabs.vue'
 import AvatarCircle from '@core/auth/AvatarCircle.vue'
 import { Icon } from '@core/icons'
 
-// One modal for both creating and configuring a group.
-//  • Details tab: name, shared-storage switch (only when Orbit is installed), members.
-//  • Apps & widgets tab: per-group enable/disable (only when editing an existing group).
 const props = defineProps({
   show: { type: Boolean, default: false },
-  group: { type: Object, default: null },     // null = create mode
-  users: { type: Array, default: () => [] },   // non-guest profiles
+  group: { type: Object, default: null },
+  users: { type: Array, default: () => [] },
   orbitInstalled: { type: Boolean, default: false },
   prismInstalled: { type: Boolean, default: false },
 })
@@ -19,20 +16,16 @@ const emit = defineEmits(['close', 'saved'])
 
 const isEdit = computed(() => !!props.group)
 
-// ── Details ──────────────────────────────────────────────────────────────────
 const tab = ref('details')
 const name = ref('')
 const sharedOrbit = ref(false)
 const sharedPrism = ref(false)
-const albumJoint = ref(false)   // shared album mirrors the Orbit shared folder
+const albumJoint = ref(false)
 const members = ref(new Set())
 const saving = ref(false)
 const error = ref(null)
 
-// "Joint" only makes sense with Orbit + shared storage; otherwise a group's
-// shared album is always a standalone Prism album.
 const canJoin = computed(() => props.orbitInstalled && sharedOrbit.value)
-// Turning shared storage off (or losing Orbit) forces the album back to standalone.
 watch([sharedOrbit, () => props.orbitInstalled], () => { if (!canJoin.value) albumJoint.value = false })
 
 watch(() => props.show, (open) => {
@@ -85,7 +78,6 @@ async function save() {
   }
 }
 
-// ── Apps & widgets (edit only — each is its own top-level tab) ────────────────
 const apps = ref([])
 const widgets = ref([])
 const globalApps = ref(new Set())
@@ -122,9 +114,6 @@ const groupSet = computed(() => (tab.value === 'apps' ? groupApps.value : groupW
 const isLocked = (it) => !!it.locked
 const globallyOff = (it) => globalSet.value.has(it.id)
 const groupOff = (it) => groupSet.value.has(it.id)
-// Cascade: a widget whose data provider is disabled (globally or for this
-// group) is effectively off too — disabling e.g. System Info turns off the
-// widgets that depend on it.
 const widgetName = (id) => widgets.value.find(w => w.id === id)?.name || id
 const providerOff = (it) => it.dependsOn && (globalSet.value.has(it.dependsOn) || groupSet.value.has(it.dependsOn))
 
@@ -153,7 +142,6 @@ async function toggleAccess(it) {
 <template>
   <TemplateModal :show="show" size="md" @cancel="saving || emit('close')">
     <div class="flex flex-col" style="max-height: 82vh">
-      <!-- Header -->
       <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
         <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">{{ isEdit ? 'Configure group' : 'New group' }}</h2>
         <button class="p-1.5 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer transition-colors" @click="emit('close')">
@@ -161,7 +149,6 @@ async function toggleAccess(it) {
         </button>
       </div>
 
-      <!-- Tabs (only when editing — apps/widgets need an existing group) -->
       <AppTabs
         v-if="isEdit"
         v-model="tab"
@@ -169,7 +156,6 @@ async function toggleAccess(it) {
         class="px-5 border-b border-slate-200/60 dark:border-white/10"
       />
 
-      <!-- DETAILS -->
       <div v-show="tab === 'details'" class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-4">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Name</label>
@@ -182,7 +168,6 @@ async function toggleAccess(it) {
           />
         </div>
 
-        <!-- Shared storage (hidden when Orbit isn't installed) -->
         <button
           v-if="orbitInstalled"
           type="button"
@@ -198,7 +183,6 @@ async function toggleAccess(it) {
           </span>
         </button>
 
-        <!-- Shared album (Prism) — available even without Orbit -->
         <div v-if="prismInstalled" class="rounded-xl bg-slate-500/[0.06] dark:bg-white/[0.04] overflow-hidden">
           <button
             type="button"
@@ -214,7 +198,6 @@ async function toggleAccess(it) {
             </span>
           </button>
 
-          <!-- Joint vs standalone — only meaningful when Orbit is installed -->
           <div v-if="sharedPrism && orbitInstalled" class="px-3 pb-3 pt-0.5 flex flex-col gap-1.5">
             <button
               type="button"
@@ -243,7 +226,6 @@ async function toggleAccess(it) {
           </div>
         </div>
 
-        <!-- Members -->
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Members · {{ members.size }}</label>
           <ul class="flex flex-col gap-0.5 max-h-56 overflow-y-auto rounded-xl border border-slate-200/70 dark:border-white/10 p-1">
@@ -264,7 +246,6 @@ async function toggleAccess(it) {
         </div>
       </div>
 
-      <!-- APPS / WIDGETS -->
       <div v-if="isEdit" v-show="tab === 'apps' || tab === 'widgets'" class="flex-1 overflow-y-auto px-3 py-3 min-h-0">
         <p v-if="accessLoading" class="text-sm text-slate-500 dark:text-white/45 py-8 text-center">Loading…</p>
         <ul v-else class="flex flex-col gap-0.5">
@@ -296,7 +277,6 @@ async function toggleAccess(it) {
         </ul>
       </div>
 
-      <!-- Footer (Details actions; access tab saves instantly) -->
       <div v-show="tab === 'details'" class="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-200/60 dark:border-white/10">
         <p class="text-[11px] text-red-500 truncate">{{ error }}</p>
         <div class="flex gap-2 shrink-0">

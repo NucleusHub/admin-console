@@ -12,13 +12,10 @@ const users = ref([])
 const groups = ref([])
 const loading = ref(true)
 const error = ref(null)
-const configUser = ref(null)     // user whose "configure apps" modal is open
-const groupsUser = ref(null)     // user whose "all groups" modal is open
-const deleteUser = ref(null)     // user pending permanent deletion
+const configUser = ref(null)
+const groupsUser = ref(null)
+const deleteUser = ref(null)
 
-// ── New profile ───────────────────────────────────────────────────────────────
-// Avatar palette mirrors the server's (core/auth-server/models/Profile.js); a
-// null color means "derive from the name", which the server does on create.
 const AVATAR_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316',
   '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#06b6d4',
@@ -34,11 +31,10 @@ const newProfileModal = ref(false)
 const creating = ref(false)
 const createError = ref(null)
 const newName = ref('')
-const newColor = ref(null)         // null → auto (derived from name)
-const pinMode = ref('none')        // 'none' | 'set' | 'temporary'
-const newPin = ref('')             // 'set': typed via PinInput · 'temporary': generated
+const newColor = ref(null)
+const pinMode = ref('none')
+const newPin = ref('')
 
-// Random 4-char hex one-time PIN, mirroring the server's reset endpoint.
 function randomPin() {
   const chars = '0123456789ABCDEF'
   let s = ''
@@ -46,18 +42,13 @@ function randomPin() {
   return s
 }
 
-// Switching mode: a temporary PIN is generated for the admin to relay (shown in
-// the yellow box, same as a reset); a permanent PIN is typed via PinInput.
 function selectPinMode(mode) {
   pinMode.value = mode
   newPin.value = mode === 'temporary' ? randomPin() : ''
 }
 
-// Color shown in the live preview: chosen swatch, or the name-derived default.
 const previewColor = computed(() => newColor.value || colorFromName(newName.value || '?'))
 
-// Reset the form whenever the modal opens (TemplateModal mounts content on show,
-// so PinInput starts fresh; we only need to clear the rest).
 watch(newProfileModal, (open) => {
   if (!open) return
   newName.value = ''
@@ -109,7 +100,6 @@ async function load() {
     const j = (url) => fetch(url, { credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
     const [profiles, gs] = await Promise.all([
       j('/api/auth/profiles'),
-      // Groups is admin-only; tolerate failure so the table still renders.
       fetch('/api/auth/groups', { credentials: 'include' }).then(r => r.ok ? r.json() : []).catch(() => []),
     ])
     users.value = profiles
@@ -122,7 +112,6 @@ async function load() {
 }
 onMounted(load)
 
-// userId -> [groups they belong to]
 const groupsByUser = computed(() => {
   const m = new Map()
   for (const g of groups.value) {
@@ -140,12 +129,10 @@ function roleLabel(u) {
   return u.role === 'admin' ? 'Admin' : 'User'
 }
 
-// Merge edits made in the config modal (name / role / PIN) back into the row.
 function onUserUpdated(patch) {
   users.value = users.value.map(u => (u._id === patch._id ? { ...u, ...patch } : u))
 }
 
-// Config modal asked to delete this user — close config, open the delete flow.
 function onRequestDelete(u) {
   configUser.value = null
   deleteUser.value = u
@@ -168,7 +155,6 @@ function onUserDeleted(id) {
     <p v-else-if="error" class="text-sm text-red-500 py-8 text-center">Couldn't load profiles: {{ error }}</p>
 
     <div v-else class="rounded-2xl bg-white/60 dark:bg-white/[0.04] backdrop-blur-md border border-indigo-200/80 dark:border-indigo-400/20 shadow-[0_0_18px_-2px_rgba(99,102,241,0.18)] dark:shadow-[0_0_22px_-4px_rgba(0,0,0,0.55)] overflow-hidden">
-      <!-- header row (desktop) -->
       <div class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_5rem] gap-3 items-center px-[18px] py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35">
         <span>Name</span><span class="text-center">Role</span><span class="text-center">PIN</span><span class="text-center">Group</span><span />
       </div>
@@ -178,13 +164,11 @@ function onUserDeleted(id) {
         :key="u._id"
         class="grid grid-cols-[1fr_auto] sm:grid-cols-[2fr_1fr_1fr_1fr_5rem] gap-x-3 gap-y-1 items-center px-[18px] py-2.5 border-t border-slate-100 dark:border-white/[0.06]"
       >
-        <!-- name -->
         <div class="flex items-center gap-3 min-w-0">
           <AvatarCircle :profile="u" :size="34" />
           <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ u.name }}</span>
         </div>
 
-        <!-- role -->
         <div class="flex col-start-1 row-start-2 sm:col-start-auto sm:row-start-auto sm:justify-center">
           <span
             class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold"
@@ -199,7 +183,6 @@ function onUserDeleted(id) {
           </span>
         </div>
 
-        <!-- pin -->
         <div class="hidden sm:flex sm:justify-center">
           <span v-if="u.hasPin && u.pinTemporary" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400" title="One-time PIN — user sets their own on next sign-in">
             <Icon name="clock" class="w-3.5 h-3.5" />
@@ -212,7 +195,6 @@ function onUserDeleted(id) {
           <span v-else class="text-[13px] text-slate-400 dark:text-white/35">None</span>
         </div>
 
-        <!-- group -->
         <div class="hidden sm:flex sm:justify-center items-center gap-1.5 min-w-0">
           <template v-if="groupsOf(u).length">
             <span class="inline-block max-w-[7rem] truncate text-[12px] font-medium px-2 py-0.5 rounded-full bg-slate-500/10 dark:bg-white/8 text-slate-600 dark:text-white/70">
@@ -227,7 +209,6 @@ function onUserDeleted(id) {
           <span v-else class="text-[13px] text-slate-400 dark:text-white/35">—</span>
         </div>
 
-        <!-- actions -->
         <div class="col-start-2 row-start-1 sm:col-auto sm:row-auto self-center justify-self-end">
           <button
             class="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer whitespace-nowrap text-indigo-600 dark:text-indigo-300 bg-indigo-500/12 hover:bg-indigo-500/22 transition-colors"
@@ -237,13 +218,10 @@ function onUserDeleted(id) {
       </div>
     </div>
 
-    <!-- Per-user app/widget config -->
     <UserConfigModal :user="configUser" @close="configUser = null" @updated="onUserUpdated" @delete="onRequestDelete" />
 
-    <!-- Permanent user + data deletion -->
     <UserDeleteModal :user="deleteUser" @close="deleteUser = null" @deleted="onUserDeleted" />
 
-    <!-- All groups a user belongs to -->
     <TemplateModal :show="!!groupsUser" size="xs" @cancel="groupsUser = null">
       <div class="p-5">
         <div class="flex items-start justify-between mb-3">
@@ -262,7 +240,6 @@ function onUserDeleted(id) {
       </div>
     </TemplateModal>
 
-    <!-- Create user -->
     <div class="mt-3">
       <button
         @click="newProfileModal = true"
@@ -275,7 +252,6 @@ function onUserDeleted(id) {
 
     <TemplateModal :show="newProfileModal" size="sm" @cancel="newProfileModal = false">
       <div class="flex flex-col" style="max-height: 85vh">
-        <!-- Header -->
         <div class="flex items-start justify-between px-5 py-4 border-b border-slate-200/60 dark:border-white/10">
           <div>
             <h2 class="text-[15px] font-bold text-slate-900 dark:text-white">Create new user</h2>
@@ -287,12 +263,10 @@ function onUserDeleted(id) {
         </div>
 
         <div class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-5">
-          <!-- Live preview -->
           <div class="flex justify-center">
             <AvatarCircle :name="newName.trim() || '?'" :color="previewColor" :size="64" />
           </div>
 
-          <!-- Name -->
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Name</label>
             <input
@@ -305,7 +279,6 @@ function onUserDeleted(id) {
             />
           </div>
 
-          <!-- Color -->
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">Color</label>
             <div class="flex flex-wrap gap-2">
@@ -330,7 +303,6 @@ function onUserDeleted(id) {
             </div>
           </div>
 
-          <!-- PIN -->
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35 mb-1.5">PIN</label>
             <div class="flex gap-1.5 bg-slate-500/[0.06] dark:bg-white/[0.04] rounded-xl p-1">
@@ -348,7 +320,6 @@ function onUserDeleted(id) {
               This profile signs in without a PIN.
             </p>
 
-            <!-- Temporary: generated one-time PIN shown in the yellow box -->
             <template v-else-if="pinMode === 'temporary'">
               <div class="rounded-xl border border-amber-300/60 dark:border-amber-400/25 bg-amber-500/10 px-3 py-2.5 mt-3">
                 <p class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
@@ -365,7 +336,6 @@ function onUserDeleted(id) {
               >Generate a different PIN</button>
             </template>
 
-            <!-- Permanent: typed via PinInput -->
             <template v-else>
               <p class="text-[11px] text-slate-400 dark:text-white/40 mt-2">
                 The user signs in with this PIN. They can change it later.
@@ -377,7 +347,6 @@ function onUserDeleted(id) {
           </div>
         </div>
 
-        <!-- Footer -->
         <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-slate-200/60 dark:border-white/10">
           <p class="text-[11px] text-red-500 truncate">{{ createError }}</p>
           <div class="flex gap-2 shrink-0">
